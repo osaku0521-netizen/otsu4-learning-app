@@ -1,0 +1,190 @@
+/* style.css - 乙4学習サイト カスタムスタイル */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root {
+  --primary-color: #0284c7;
+  --primary-dark: #0369a1;
+  --accent-color: #f59e0b;
+  --danger-color: #ef4444;
+  --success-color: #10b981;
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-mono-numbers {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* スクロールバー装飾 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* アニメーション */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+/* 選択肢ボタンのホバー・アクティブ */
+.option-btn {
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.option-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 星マーク評価 */
+.star-rating {
+  letter-spacing: 2px;
+}
+
+/* 模擬試験タイマーパルス */
+@keyframes timerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.timer-warning {
+  animation: timerPulse 1s infinite;
+  color: #ef4444 !important;
+}
+
+/* テキスト装飾 */
+.textbook-prose {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: #334155;
+}
+
+.textbook-prose h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  color: #0f172a;
+  border-left: 4px solid #0284c7;
+  padding-left: 0.75rem;
+}
+
+.textbook-prose h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #1e293b;
+}
+
+.textbook-prose p {
+  margin-bottom: 0.85rem;
+  line-height: 1.75;
+}
+
+.textbook-prose ul {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+  space-y: 0.25rem;
+}
+
+.textbook-prose ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.textbook-prose li {
+  margin-bottom: 0.35rem;
+}
+
+/* テーブルスタイル（完全レスポンシブ） */
+.textbook-table-wrapper {
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.textbook-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  background-color: #ffffff;
+}
+
+.textbook-prose th {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid #cbd5e1;
+  white-space: nowrap;
+}
+
+.textbook-prose td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.textbook-prose tr:last-child td {
+  border-bottom: none;
+}
+
+.textbook-prose tr:hover td {
+  background-color: #f8fafc;
+}
+
+.textbook-prose hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* アラートブロック */
+.callout-box {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  border-radius: 0.875rem;
+  border-left-width: 4px;
+}
+
+.callout-tip {
+  background-color: #fffbeb;
+  border-color: #f59e0b;
+  color: #78350f;
+}
+
+.callout-warning {
+  background-color: #fef2f2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+.callout-info {
+  background-color: #f0f9ff;
+  border-color: #0284c7;
+  color: #075985;
+}

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>危険物取扱者 乙4 合格マスター | 過去問演習・本番模試・要点テキスト</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Marked.js for robust Markdown & Table rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white">
+
+  <!-- ヘッダーナビゲーション -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/95">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- ロゴ -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('practice')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-amber-500 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.527.82-1.124 2.112-1.34 3.013a7.227 7.227 0 01-1.348-1.583 1 1 0 00-1.748.974c.264.474.59 1.05.952 1.636-.516.408-1.07.893-1.61 1.48A10.74 10.74 0 004 12.5C4 16.09 6.91 19 10.5 19s6.5-2.91 6.5-6.5c0-2.316-.948-4.394-2.5-5.834-.23-.213-.48-.423-.743-.628a11.35 11.35 0 01-1.362-3.485zm-1.895 6.27c-.208.625-.436 1.258-.702 1.838a1 1 0 01-1.802-.857c.23-.484.427-.998.604-1.503.21-.6.388-1.21.536-1.807.412.753.868 1.618 1.364 2.33z" clip-rule="evenodd"/></svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-extrabold text-lg tracking-tight text-slate-900">乙4合格マスター</span>
+              <span class="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded-full border border-amber-200">全300問収録</span>
+            </div>
+            <p class="text-[11px] text-slate-500 hidden sm:block">消防試験研究センター準拠・模擬試験・要点テキスト</p>
+          </div>
+        </div>
+
+        <!-- ナビゲーションタブ -->
+        <nav class="flex items-center space-x-1 sm:space-x-2">
+          <button type="button" class="nav-tab px-3 py-2 rounded-lg text-sm font-bold text-sky-600 border-b-2 border-sky-600 transition-all flex items-center space-x-1.5" data-tab="practice">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            <span>一問一答演習</span>
+          </button>
+          <button type="button" class="nav-tab px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-sky-600 transition-all flex items-center space-x-1.5" data-tab="mock">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>本番模試 (35問)</span>
+          </button>
+          <button type="button" class="nav-tab px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-sky-600 transition-all hidden md:flex items-center space-x-1.5" data-tab="textbook">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <span>要点テキスト</span>
+          </button>
+          <button type="button" class="nav-tab px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-sky-600 transition-all hidden md:flex items-center space-x-1.5" data-tab="glossary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <span>用語解説</span>
+          </button>
+          <button type="button" class="nav-tab px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-sky-600 transition-all flex items-center space-x-1.5" data-tab="stats">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>進捗</span>
+          </button>
+        </nav>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ======================================================== -->
+    <!-- セクション 1: 一問一答・分野別演習 -->
+    <!-- ======================================================== -->
+    <section id="sec-practice" class="space-y-6">
+
+      <!-- フィルター操作バー -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          
+          <!-- 科目フィルタ -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5">出題科目</label>
+            <select id="filter-category" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <option value="all">すべての科目 (300問)</option>
+              <option value="法令">危険物に関する法令 (130問)</option>
+              <option value="物理化学">基礎的な物理学及び化学 (85問)</option>
+              <option value="性質消火">危険物の性質・予防消火 (85問)</option>
+            </select>
+          </div>
+
+          <!-- 頻出度フィルタ -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5">過去の頻出度</label>
+            <select id="filter-importance" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <option value="all">すべての頻出度 (★1〜3)</option>
+              <option value="3">★★★ 超頻出問題のみ</option>
+              <option value="2">★★☆ 頻出問題以上</option>
+              <option value="1">★☆☆ 基本・応用問題</option>
+            </select>
+          </div>
+
+          <!-- 復習絞り込みチェックボックス -->
+          <div class="sm:col-span-2 flex flex-wrap items-center gap-4 pt-1 sm:pt-6">
+            <label class="inline-flex items-center space-x-2 cursor-pointer text-sm font-semibold text-slate-700">
+              <input type="checkbox" id="filter-only-wrong" class="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500">
+              <span>間違えた問題のみ (復習)</span>
+            </label>
+            <label class="inline-flex items-center space-x-2 cursor-pointer text-sm font-semibold text-slate-700">
+              <input type="checkbox" id="filter-only-bookmark" class="w-4 h-4 text-amber-500 rounded border-slate-300 focus:ring-amber-500">
+              <span>ブックマークのみ</span>
+            </label>
+            <button type="button" id="btn-reset-filters" class="text-xs font-bold text-slate-400 hover:text-slate-600 underline ml-auto">
+              条件クリア
+            </button>
+          </div>
+
+        </div>
+
+        <!-- シャッフル設定バー -->
+        <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+          <div class="flex items-center space-x-4">
+            <label class="inline-flex items-center space-x-2 cursor-pointer font-medium text-slate-600">
+              <input type="checkbox" id="toggle-shuffle-q" checked class="w-3.5 h-3.5 text-sky-600 rounded">
+              <span>演習の出題順序をランダムシャッフル</span>
+            </label>
+            <label class="inline-flex items-center space-x-2 cursor-pointer font-medium text-slate-600">
+              <input type="checkbox" id="toggle-shuffle-opt" checked class="w-3.5 h-3.5 text-sky-600 rounded">
+              <span>選択肢(1〜5)の順序を毎回ランダム入替</span>
+            </label>
+          </div>
+          <div class="font-mono text-slate-600 font-bold">
+            対象問題数: <span id="practice-current-num" class="text-sky-600">1</span> / <span id="practice-total-count">300</span> 問
+          </div>
+        </div>
+      </div>
+
+      <!-- 問題演習カード -->
+      <div id="practice-card-container" class="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 sm:p-8 space-y-6 animate-fade-in">
+        
+        <!-- ヘッダーメタ情報 -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="q-category-badge" class="px-3 py-1 bg-sky-100 text-sky-800 rounded-full text-xs font-bold">法令</span>
+            <span id="q-subcategory-badge" class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">指定数量</span>
+            <span id="q-importance-stars" class="px-2.5 py-0.5 rounded-full text-xs font-semibold border">★★★ 超頻出</span>
+          </div>
+
+          <!-- ブックマークボタン -->
+          <button type="button" id="practice-bookmark-btn" class="p-2 rounded-xl text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-all" title="ブックマークに追加/解除">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+          </button>
+        </div>
+
+        <!-- 問題文 (消防試験研究センターの公式スタイル) -->
+        <div>
+          <h2 id="q-text" class="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed">
+            問題文がここに表示されます
+          </h2>
+        </div>
+
+        <!-- 5肢択一 選択肢ボタン群 -->
+        <div id="practice-options" class="space-y-3 pt-2">
+          <!-- JSで動的生成 -->
+        </div>
+
+        <!-- 正誤判定＆分かりやすい解説カード (回答後に展開) -->
+        <div id="practice-explanation-card" class="hidden mt-6 pt-6 border-t border-slate-200/90 animate-fade-in space-y-4">
+          <div id="practice-result-banner" class="p-4 rounded-xl flex items-center space-x-3">
+            <!-- JSで動的設定 -->
+          </div>
+
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2 mb-2">
+              <svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>解答の根拠と詳しい解説</span>
+            </h3>
+            <div id="practice-explanation-text" class="text-sm text-slate-700 leading-relaxed font-normal">
+              <!-- JSで動的設定 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 前へ・次へ ナビゲーションバー -->
+        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+          <button type="button" id="btn-prev-q" class="px-5 py-2.5 rounded-xl border border-slate-200 font-bold text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            <span>前の問題</span>
+          </button>
+          <button type="button" id="btn-next-q" class="px-6 py-2.5 rounded-xl bg-sky-600 font-bold text-sm text-white hover:bg-sky-700 disabled:opacity-30 disabled:pointer-events-none shadow-md shadow-sky-600/20 transition-all flex items-center space-x-1.5">
+            <span>次の問題</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 該当問題なしの空ステート -->
+      <div id="practice-empty-state" class="hidden bg-white p-12 text-center rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800">条件に一致する問題がありません</h3>
+        <p class="text-sm text-slate-500 max-w-md mx-auto">「間違えた問題のみ」や「ブックマーク」の条件を外すか、出題科目フィルタを変更してください。</p>
+      </div>
+
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- セクション 2: 本番想定 模擬試験 (35問) -->
+    <!-- ======================================================== -->
+    <section id="sec-mock" class="hidden space-y-6">
+
+      <!-- 模試開始前案内カード -->
+      <div id="mock-welcome-card" class="bg-white p-8 sm:p-12 rounded-3xl border border-slate-200 shadow-md text-center max-w-3xl mx-auto space-y-6">
+        <div class="w-20 h-20 bg-sky-100 text-sky-600 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">乙種第4類 危険物取扱者 本番模擬試験</h2>
+          <p class="text-sm text-slate-600">消防試験研究センターの実際の本試験構成・合格基準を忠実にシミュレートします。</p>
+        </div>
+
+        <!-- 試験概要スペック -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left p-6 bg-slate-50 rounded-2xl border border-slate-100">
+          <div>
+            <span class="text-xs font-bold text-slate-400 block mb-1">問題構成 (計35問)</span>
+            <p class="text-sm font-bold text-slate-800">・法令: 15問</p>
+            <p class="text-sm font-bold text-slate-800">・物理化学: 10問</p>
+            <p class="text-sm font-bold text-slate-800">・性質消火: 10問</p>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-slate-400 block mb-1">試験時間</span>
+            <p class="text-2xl font-black text-sky-600 font-mono">120 分</p>
+            <p class="text-[11px] text-slate-500">（本番試験と同じ2時間設定）</p>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-slate-400 block mb-1">合格判定基準</span>
+            <p class="text-xs font-bold text-rose-600">全3科目それぞれで正答率60％以上が必須！</p>
+            <p class="text-[11px] text-slate-500 mt-1">※1科目でも60％未満は不合格となります。</p>
+          </div>
+        </div>
+
+        <button type="button" id="btn-start-mock" class="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600 text-white font-extrabold text-lg rounded-2xl shadow-lg shadow-sky-600/30 transition-all transform hover:-translate-y-0.5">
+          本番模擬試験を開始する
+        </button>
+      </div>
+
+      <!-- 模試試験中カード -->
+      <div id="mock-running-card" class="hidden space-y-6">
+        
+        <!-- 試験中上部ステータスバー -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4 sticky top-16 z-30 backdrop-blur-md bg-white/95">
+          <div class="flex items-center space-x-3">
+            <span class="text-xs font-bold text-slate-500">残り時間:</span>
+            <span id="mock-timer-display" class="font-mono text-2xl font-black text-slate-800 tracking-wider">120:00</span>
+          </div>
+
+          <!-- プログレスバー -->
+          <div class="flex-1 max-w-xs mx-4 hidden sm:block">
+            <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-1">
+              <span>進捗状況</span>
+              <span id="mock-answered-stat">0 / 35 問回答済</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
+              <div id="mock-progress-bar" class="bg-sky-500 h-full rounded-full transition-all" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button type="button" id="btn-submit-mock" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md shadow-emerald-600/20 transition-all">
+              試験を終了して採点
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          
+          <!-- 左側: 問題表示エリア (3カラム) -->
+          <div class="lg:col-span-3 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-xs font-extrabold font-mono">
+                  第 <span id="mock-q-current-num">1</span> 問
+                </span>
+                <span id="mock-q-cat-badge" class="px-2.5 py-0.5 bg-sky-100 text-sky-800 rounded-md text-xs font-bold">法令</span>
+                <span id="mock-q-subcat-badge" class="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-xs font-medium">保安距離</span>
+              </div>
+
+              <!-- あとで見直すフラグ -->
+              <button type="button" id="mock-flag-btn" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 border border-slate-200 text-slate-600 hover:bg-slate-50">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
+                <span>あとで見直す</span>
+              </button>
+            </div>
+
+            <!-- 問題文 -->
+            <h3 id="mock-q-text" class="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed">
+              ［問 1］ 問題文がここに表示されます
+            </h3>
+
+            <!-- 5肢の選択肢 -->
+            <div id="mock-options-container" class="space-y-3 pt-2">
+              <!-- JSで動的生成 -->
+            </div>
+
+            <!-- 模試ナビゲーションボタン -->
+            <div class="flex items-center justify-between pt-6 border-t border-slate-100">
+              <button type="button" id="mock-btn-prev" class="px-5 py-2.5 rounded-xl border border-slate-200 font-bold text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-all">
+                前の設問
+              </button>
+              <button type="button" id="mock-btn-next" class="px-6 py-2.5 rounded-xl bg-sky-600 font-bold text-sm text-white hover:bg-sky-700 disabled:opacity-30 disabled:pointer-events-none shadow-md shadow-sky-600/20 transition-all">
+                次の設問
+              </button>
+            </div>
+
+          </div>
+
+          <!-- 右側: 問題ナビゲーターパレット (1カラム) -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h4 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">問題一覧ナビゲーター</h4>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pb-2 border-b border-slate-100">
+              <span class="flex items-center space-x-1"><span class="w-3 h-3 bg-sky-600 rounded"></span><span>回答済</span></span>
+              <span class="flex items-center space-x-1"><span class="w-3 h-3 bg-slate-100 border border-slate-300 rounded"></span><span>未回答</span></span>
+              <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 bg-amber-500 rounded-full"></span><span>要確認</span></span>
+            </div>
+
+            <div id="mock-nav-grid" class="grid grid-cols-5 gap-1.5 font-mono">
+              <!-- JSで1〜35のチップ生成 -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- 模試採点結果カード -->
+      <div id="mock-result-card" class="hidden space-y-8 animate-fade-in max-w-4xl mx-auto">
+        
+        <!-- 合否判定バナー -->
+        <div id="mock-result-status-banner" class="p-8 rounded-3xl text-white text-center shadow-xl">
+          <!-- JSで動的判定 -->
+        </div>
+
+        <!-- スコア統計グリッド -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm text-center">
+            <span class="text-xs font-bold text-slate-400 block mb-1">総合得点 (35問中)</span>
+            <p id="mock-total-score-display" class="text-4xl font-black text-slate-900 font-mono tracking-tight">31 / 35</p>
+          </div>
+          <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm text-center">
+            <span class="text-xs font-bold text-slate-400 block mb-1">解答所要時間</span>
+            <p id="mock-time-taken-display" class="text-4xl font-black text-sky-600 font-mono tracking-tight">45:20</p>
+          </div>
+        </div>
+
+        <!-- 科目別採点状況 (3科目60%ルール) -->
+        <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="text-base font-bold text-slate-900">科目別得点と合格基準達成状況</h3>
+          <div class="space-y-4">
+            <div id="cat-score-hourei" class="p-3 bg-slate-50 rounded-xl border border-slate-100"></div>
+            <div id="cat-score-butsu" class="p-3 bg-slate-50 rounded-xl border border-slate-100"></div>
+            <div id="cat-score-seika" class="p-3 bg-slate-50 rounded-xl border border-slate-100"></div>
+          </div>
+        </div>
+
+        <!-- 再挑戦ボタン -->
+        <div class="text-center pt-2">
+          <button type="button" id="btn-restart-mock" class="px-8 py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-base rounded-2xl shadow-lg shadow-sky-600/25 transition-all">
+            もう一度新しい問題で模擬試験を受ける
+          </button>
+        </div>
+
+        <!-- 全問解答解説レビュー -->
+        <div class="space-y-4 pt-6">
+          <h3 class="text-xl font-extrabold text-slate-900">全35問の解答・解説一覧</h3>
+          <div id="mock-review-container">
+            <!-- JSで動的生成 -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- セクション 3: 要点テキスト -->
+    <!-- ======================================================== -->
+    <section id="sec-textbook" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- 左サイドバー: 編・章ナビゲーション -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-fit sticky top-20">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">テキスト目次</h3>
+          <div id="textbook-nav-tabs" class="space-y-1">
+            <!-- JSで動的生成 -->
+          </div>
+        </div>
+
+        <!-- 右コンテンツエリア -->
+        <div class="lg:col-span-3">
+          <div id="textbook-content-area">
+            <!-- JSで動的生成 -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- セクション 4: 用語解説集 -->
+    <!-- ======================================================== -->
+    <section id="sec-glossary" class="hidden space-y-6">
+      
+      <!-- 検索＆カテゴリバー -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="relative">
+          <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="glossary-search-input" placeholder="用語名、読み仮名、キーワードで検索（例: 指定数量、引火点、過酸化物...）" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none font-medium">
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <div class="flex items-center space-x-2">
+            <button type="button" class="glossary-cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-600 text-white transition-all" data-cat="all">すべて</button>
+            <button type="button" class="glossary-cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all" data-cat="法令">法令</button>
+            <button type="button" class="glossary-cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all" data-cat="物理化学">物理・化学</button>
+            <button type="button" class="glossary-cat-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all" data-cat="性質消火">性質・消火</button>
+          </div>
+          <span id="glossary-result-count" class="text-xs font-mono font-bold text-slate-500">20 件</span>
+        </div>
+      </div>
+
+      <!-- 用語カードグリッド -->
+      <div id="glossary-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- JSで動的生成 -->
+      </div>
+
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- セクション 5: 学習進捗・統計 -->
+    <!-- ======================================================== -->
+    <section id="sec-stats" class="hidden space-y-6 max-w-4xl mx-auto">
+      
+      <!-- 全体進捗カード -->
+      <div class="p-6 sm:p-8 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <h2 class="text-xl font-extrabold text-slate-900">あなたの学習達成状況</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 bg-sky-50 rounded-xl border border-sky-100 text-center">
+            <span class="text-xs font-bold text-sky-800 block mb-1">総演習完了率</span>
+            <p id="stats-total-progress-pct" class="text-3xl font-black text-sky-700 font-mono">0%</p>
+            <span id="stats-answered-count" class="text-[11px] text-sky-600 font-medium">0 / 300 問</span>
+          </div>
+          <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100 text-center">
+            <span class="text-xs font-bold text-emerald-800 block mb-1">正答率</span>
+            <p id="stats-accuracy-rate" class="text-3xl font-black text-emerald-700 font-mono">0%</p>
+            <span class="text-[11px] text-emerald-600 font-medium">目標: 80%以上</span>
+          </div>
+          <div class="p-4 bg-amber-50 rounded-xl border border-amber-100 text-center">
+            <span class="text-xs font-bold text-amber-800 block mb-1">ブックマーク問題</span>
+            <p id="stats-bookmark-count" class="text-3xl font-black text-amber-700 font-mono">0 問</p>
+            <span class="text-[11px] text-amber-600 font-medium">後で復習する問題</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
+            <span>全300問の消化進捗</span>
+          </div>
+          <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
+            <div id="stats-progress-bar" class="bg-sky-500 h-full rounded-full transition-all" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- 科目別習熟度 -->
+        <div class="space-y-3 pt-4 border-t border-slate-100">
+          <h3 class="text-sm font-bold text-slate-800">科目別マスター状況</h3>
+          <div id="stat-hourei" class="p-3 bg-slate-50 rounded-xl border border-slate-100"></div>
+          <div id="stat-butsu" class="p-3 bg-slate-50 rounded-xl border border-slate-100"></div>
+          <div id="stat-seika" class="p-3 bg-slate-50 rounded-xl border border-slate-100"></div>
+        </div>
+      </div>
+
+      <!-- 模擬試験の履歴テーブル -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="text-base font-bold text-slate-900">過去の模擬試験結果</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 text-xs font-bold text-slate-400">
+                <th class="p-3">受験日</th>
+                <th class="p-3">合否判定</th>
+                <th class="p-3">得点</th>
+                <th class="p-3">科目別内訳</th>
+              </tr>
+            </thead>
+            <tbody id="stats-mock-history-table">
+              <!-- JSで動的生成 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 履歴データリセット -->
+      <div class="text-right">
+        <button type="button" id="btn-clear-stats" class="text-xs font-bold text-rose-500 hover:text-rose-700 underline">
+          すべての学習履歴とブックマークを初期化
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400 mt-12">
+    <div class="max-w-7xl mx-auto px-4 space-y-1">
+      <p class="font-semibold text-slate-600">危険物取扱者 乙種第4類 学習プラットフォーム</p>
+      <p>消防試験研究センター出題形式準拠 ｜ 全300問演習・模擬試験・体系テキスト</p>
+    </div>
+  </footer>
+
+  <!-- データスクリプト読み込み -->
+  <script src="data/questions_hourei.js"></script>
+  <script src="data/questions_butsukagi.js"></script>
+  <script src="data/questions_seikashoka.js"></script>
+  <script src="data/questions.js"></script>
+  <script src="data/textbook.js"></script>
+  <script src="data/glossary.js"></script>
+  <!-- アプリメインロジック -->
+  <script src="app.js"></script>
+</body>
+</html>
