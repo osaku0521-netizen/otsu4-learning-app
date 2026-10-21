@@ -1224,6 +1224,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // モバイル目次ジャンプのイベント連携
+  const mobileTextbookSelect = document.getElementById('mobile-textbook-select');
+  if (mobileTextbookSelect) {
+    mobileTextbookSelect.addEventListener('change', (e) => {
+      const target = document.getElementById(e.target.value);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+
   // --- 初回初期化起動 ---
   preparePracticeQuestions();
   renderPracticeView();

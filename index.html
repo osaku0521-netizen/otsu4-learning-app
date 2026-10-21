@@ -18,8 +18,8 @@
   </script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Marked.js for robust Markdown & Table rendering -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Marked.js (ローカル配信によりブラウザのトラッキング防止警告を完全解消) -->
+  <script src="marked.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -418,14 +418,30 @@
     <!-- ======================================================== -->
     <!-- セクション 3: 要点テキスト -->
     <!-- ======================================================== -->
-    <section id="sec-textbook" class="hidden space-y-6">
+    <section id="sec-textbook" class="hidden space-y-4 sm:space-y-6">
+
+      <!-- モバイル用：邪魔にならないスリムな1行目次ジャンプ（非固定・画面を占領しません） -->
+      <div class="lg:hidden bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-sm flex items-center space-x-2">
+        <label for="mobile-textbook-select" class="text-xs font-bold text-slate-500 whitespace-nowrap flex items-center space-x-1 shrink-0">
+          <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          <span>目次:</span>
+        </label>
+        <select id="mobile-textbook-select" class="flex-1 bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 py-1.5 px-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <option value="part1">第1編: 危険物に関する法令（第1〜5章）</option>
+          <option value="part2">第2編: 基礎的な物理・化学（第6〜9章）</option>
+          <option value="part3">第3編: 性質・火災予防・消火（第10〜14章）</option>
+        </select>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        <!-- 左サイドバー: 編・章ナビゲーション -->
-        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm h-fit sticky top-20 z-10">
-          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 sm:mb-3">テキスト目次</h3>
-          <div id="textbook-nav-tabs" class="flex flex-wrap lg:flex-col gap-2 lg:gap-1">
-            <!-- JSで動的生成 -->
+        <!-- PC用 左サイドバー: 編・章ナビゲーション (PC時のみ表示) -->
+        <div class="hidden lg:block lg:col-span-1">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm h-fit sticky top-20">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">テキスト目次</h3>
+            <div id="textbook-nav-tabs" class="space-y-1">
+              <!-- JSで動的生成 -->
+            </div>
           </div>
         </div>
 
