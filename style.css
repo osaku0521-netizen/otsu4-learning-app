@@ -188,3 +188,26 @@ body {
   border-color: #0284c7;
   color: #075985;
 }
+
+/* モバイル用ボトムナビとセーフエリア対応 */
+.safe-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  /* モバイルで文字の折り返しを自然に */
+  #q-text, #mock-q-text {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* 選択肢のタップしやすさと折返し */
+  .option-btn {
+    word-break: break-word;
+    touch-action: manipulation;
+  }
+}

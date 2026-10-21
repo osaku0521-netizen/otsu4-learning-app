@@ -108,6 +108,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- タブ切り替え ---
   const navTabs = document.querySelectorAll('.nav-tab');
+  const mobileNavTabs = document.querySelectorAll('.mobile-nav-tab');
+  const mobileTabLabel = document.getElementById('mobile-current-tab-label');
+
+  const tabNamesMap = {
+    practice: '一問一答',
+    mock: '本番模試',
+    textbook: '要点テキスト',
+    glossary: '用語解説',
+    stats: '学習進捗'
+  };
+
   const sections = {
     practice: document.getElementById('sec-practice'),
     mock: document.getElementById('sec-mock'),
@@ -118,6 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.switchTab = function(tabName) {
     state.currentTab = tabName;
+
+    // デスクトップ ナビゲーション更新
     navTabs.forEach(btn => {
       const isTarget = btn.dataset.tab === tabName;
       btn.classList.toggle('text-sky-600', isTarget);
@@ -126,6 +139,20 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.classList.toggle('font-bold', isTarget);
       btn.classList.toggle('text-slate-600', !isTarget);
     });
+
+    // モバイル用 ボトムナビゲーション更新
+    mobileNavTabs.forEach(btn => {
+      const isTarget = btn.dataset.tab === tabName;
+      btn.classList.toggle('text-sky-600', isTarget);
+      btn.classList.toggle('font-bold', isTarget);
+      btn.classList.toggle('text-slate-500', !isTarget);
+      btn.classList.toggle('font-medium', !isTarget);
+    });
+
+    // モバイル用 ヘッダー現在タブバッジ更新
+    if (mobileTabLabel && tabNamesMap[tabName]) {
+      mobileTabLabel.textContent = tabNamesMap[tabName];
+    }
 
     Object.keys(sections).forEach(key => {
       if (sections[key]) {
@@ -146,6 +173,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   navTabs.forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  mobileNavTabs.forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 
@@ -259,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     q.displayOptions.forEach((optText, optIdx) => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = `option-btn w-full text-left p-4 rounded-xl border text-sm md:text-base font-medium flex items-start space-x-3 transition-all `;
+      btn.className = `option-btn w-full text-left p-3.5 sm:p-4 rounded-xl border text-sm sm:text-base font-medium flex items-start space-x-3 transition-all `;
 
       let badgeClass = 'w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ';
       let badgeText = `${optIdx + 1}`;
@@ -285,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      btn.innerHTML = `<span class="${badgeClass}">${badgeText}</span><span class="pt-0.5 leading-relaxed">${optText}</span>`;
+      btn.innerHTML = `<span class="${badgeClass}">${badgeText}</span><span class="pt-0.5 leading-relaxed break-words flex-1">${optText}</span>`;
 
       if (!answered) {
         btn.addEventListener('click', () => handlePracticeAnswer(optIdx));
@@ -569,14 +600,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const isSelected = (userSelected === optIdx);
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = `option-btn w-full text-left p-4 rounded-xl border text-sm md:text-base font-medium flex items-start space-x-3 transition-all ${
+      btn.className = `option-btn w-full text-left p-3.5 sm:p-4 rounded-xl border text-sm sm:text-base font-medium flex items-start space-x-3 transition-all ${
         isSelected 
           ? 'border-sky-600 bg-sky-50 text-sky-950 font-semibold ring-2 ring-sky-500' 
           : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-700'
       }`;
       btn.innerHTML = `
         <span class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${isSelected ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-600 border border-slate-200'}">${optIdx + 1}</span>
-        <span class="pt-0.5 leading-relaxed">${optText}</span>
+        <span class="pt-0.5 leading-relaxed break-words flex-1">${optText}</span>
       `;
       btn.addEventListener('click', () => {
         state.mock.userAnswers[state.mock.currentIndex] = optIdx;
@@ -890,7 +921,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // ナビゲーションリンク
       const navLink = document.createElement('a');
       navLink.href = `#${part.id}`;
-      navLink.className = 'block px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-all';
+      navLink.className = 'block px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:text-sky-600 hover:bg-sky-50 bg-slate-50 lg:bg-transparent border border-slate-200 lg:border-transparent transition-all shrink-0';
       navLink.textContent = `${part.part}: ${part.title}`;
       navContainer.appendChild(navLink);
     });
