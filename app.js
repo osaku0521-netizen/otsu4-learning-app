@@ -930,21 +930,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderMarkdownSimple(md) {
     if (!md) return '';
 
-    // 1. 特殊な数式ブロックの美装化 ($$...$$)
-    let processed = md.replace(/\$\$\\text\{指定数量の倍数\}[\s\S]*?\$\$/g, () => {
-      return `
-<div class="my-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-sky-50 via-indigo-50 to-sky-50 border border-sky-200 shadow-sm text-center font-mono">
-  <div class="inline-flex items-center space-x-1.5 px-3 py-1 bg-sky-600 text-white rounded-full text-xs font-bold uppercase tracking-wider mb-2.5">
-    <span>指定数量の倍数 計算公式</span>
-  </div>
-  <div class="text-sm sm:text-base font-bold text-slate-800 overflow-x-auto py-1 whitespace-nowrap">
-    倍数 ＝ <span class="text-sky-700">（Aの貯蔵量 ÷ Aの指定数量）</span> ＋ <span class="text-sky-700">（Bの貯蔵量 ÷ Bの指定数量）</span> ＋ <span class="text-sky-700">（Cの貯蔵量 ÷ Cの指定数量）</span> ＋ …
-  </div>
-  <div class="text-xs text-slate-500 mt-2">※異なる品名が複数ある場合は、各倍数をすべて「足し算（合算）」して判定します。</div>
-</div>`;
-    });
+    let processed = md;
 
-    // 2. Callout Blocks (> [!TIP], > [!WARNING])
+    // 1. Callout Blocks (> [!TIP], > [!WARNING])
     processed = processed.replace(/> \[!TIP\]([\s\S]*?)(?=\n\n|\n###|\n---|$)/g, (match, content) => {
       const cleanContent = content.split('\n').map(l => l.replace(/^>\s?/, '')).join('\n');
       return `<div class="callout-box callout-tip my-4 text-sm">${renderInnerMarkdown(cleanContent)}</div>`;
@@ -955,7 +943,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return `<div class="callout-box callout-warning my-4 text-sm">${renderInnerMarkdown(cleanContent)}</div>`;
     });
 
-    // 3. Marked.js による完全パース（利用可能な場合）
+    // 2. Marked.js による完全パース（利用可能な場合）
     if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
       try {
         let html = marked.parse(processed);
@@ -967,7 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 4. フォールバック用パーサー（オフライン時もテーブル等を綺麗に整形）
+    // 3. フォールバック用パーサー（オフライン時もテーブル等を綺麗に整形）
     return fallbackMarkdownParser(processed);
   }
 

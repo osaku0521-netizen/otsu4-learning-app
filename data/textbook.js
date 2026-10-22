@@ -56,7 +56,33 @@
 ### 3. 指定数量の倍数計算公式
 品名が異なる複数の危険物を同一の場所で貯蔵・取り扱う場合：
 
-$$\text{指定数量の倍数} = \frac{\text{危険物Aの貯蔵量}}{\text{Aの指定数量}} + \frac{\text{危険物Bの貯蔵量}}{\text{Bの指定数量}} + \frac{\text{危険物Cの貯蔵量}}{\text{Cの指定数量}} + \dots$$
+<div class="my-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-sky-50 via-indigo-50 to-sky-50 border border-sky-200 shadow-sm text-center">
+  <div class="inline-flex items-center space-x-1.5 px-3 py-1 bg-sky-600 text-white rounded-full text-xs font-bold uppercase tracking-wider mb-3">
+    <span>指定数量の倍数 計算公式</span>
+  </div>
+  <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base font-bold text-slate-800 my-2">
+    <span>倍数 ＝</span>
+    <span class="inline-flex flex-col items-center px-2 py-1 bg-white rounded-lg border border-sky-200 shadow-xs">
+      <span class="text-xs sm:text-sm text-sky-800 pb-0.5">危険物Aの貯蔵量</span>
+      <span class="w-full border-t border-sky-400"></span>
+      <span class="text-xs sm:text-sm text-slate-600 pt-0.5">Aの指定数量</span>
+    </span>
+    <span>＋</span>
+    <span class="inline-flex flex-col items-center px-2 py-1 bg-white rounded-lg border border-sky-200 shadow-xs">
+      <span class="text-xs sm:text-sm text-sky-800 pb-0.5">危険物Bの貯蔵量</span>
+      <span class="w-full border-t border-sky-400"></span>
+      <span class="text-xs sm:text-sm text-slate-600 pt-0.5">Bの指定数量</span>
+    </span>
+    <span>＋</span>
+    <span class="inline-flex flex-col items-center px-2 py-1 bg-white rounded-lg border border-sky-200 shadow-xs">
+      <span class="text-xs sm:text-sm text-sky-800 pb-0.5">危険物Cの貯蔵量</span>
+      <span class="w-full border-t border-sky-400"></span>
+      <span class="text-xs sm:text-sm text-slate-600 pt-0.5">Cの指定数量</span>
+    </span>
+    <span>＋ …</span>
+  </div>
+  <div class="text-xs text-slate-500 mt-2 font-medium">※異なる品名が複数ある場合は、各品名の倍数をすべて「足し算（合算）」して判定します。</div>
+</div>
 
 - **倍数の合計が 1.0 以上**になると、消防法上の「製造所等」としての規制（設置許可・完成検査・基準適合）を受けます。
 - **1.0 未満**の場合は「少量危険物」となり、市町村の火災予防条例の規制を受けます。
@@ -353,17 +379,54 @@ $$\text{指定数量の倍数} = \frac{\text{危険物Aの貯蔵量}}{\text{Aの
 ---
 
 ### 3. 比熱と熱量計算
-- **熱量計算公式**: $$Q = m \cdot c \cdot \Delta T$$
-  - $Q$: 熱量 (J), $m$: 質量 (g), $c$: 比熱 (J/(g・K)), $\Delta T$: 温度変化 (K又は℃)
+<div class="my-4 p-4 sm:p-5 rounded-2xl bg-amber-50/70 border border-amber-200 shadow-xs space-y-2">
+  <div class="flex items-center space-x-2 text-xs font-bold text-amber-900">
+    <span class="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-extrabold">熱量計算公式</span>
+    <span class="text-sm sm:text-base font-black text-slate-900 font-mono tracking-wide">Q ＝ m × c × ΔT</span>
+  </div>
+  <p class="text-xs text-slate-700 leading-relaxed font-medium pt-1">
+    ・<strong>Q</strong>: 熱量 (J または cal)<br>
+    ・<strong>m</strong>: 物質の質量 (g)<br>
+    ・<strong>c</strong>: 比熱 (J/(g・K))（※1gの物質を1℃上昇させるのに必要な熱量）<br>
+    ・<strong>ΔT</strong>: 温度変化 (℃ または K)
+  </p>
+</div>
 
 ---
 
 ### 4. 気体の法則と蒸気比重
-- **ボイル・シャルルの法則**:
-  $$\frac{P_1 \cdot V_1}{T_1} = \frac{P_2 \cdot V_2}{T_2} \quad (T = t + 273)$$
-- **蒸気比重の計算**:
-  $$\text{蒸気比重} = \frac{\text{気体の分子量}}{\text{空気の平均分子量 } (28.8)}$$
-  - 第4類危険物の蒸気比重はすべて**1より大きい（空気より重い）**。
+<div class="my-4 p-4 sm:p-5 rounded-2xl bg-sky-50/70 border border-sky-200 shadow-xs space-y-4">
+  <div>
+    <span class="text-xs font-bold text-sky-900 block mb-1.5">【ボイル・シャルルの法則（気体の体積変化）】</span>
+    <div class="flex flex-wrap items-center gap-2 font-mono font-bold text-sm sm:text-base text-slate-800">
+      <span class="inline-flex flex-col items-center px-2 py-0.5 bg-white rounded border border-sky-200 shadow-xs">
+        <span>P₁ × V₁</span>
+        <span class="w-full border-t border-slate-300"></span>
+        <span>T₁</span>
+      </span>
+      <span>＝</span>
+      <span class="inline-flex flex-col items-center px-2 py-0.5 bg-white rounded border border-sky-200 shadow-xs">
+        <span>P₂ × V₂</span>
+        <span class="w-full border-t border-slate-300"></span>
+        <span>T₂</span>
+      </span>
+      <span class="text-xs font-sans text-slate-600 pl-1">（※絶対温度 T ＝ セルシウス度 t ＋ 273）</span>
+    </div>
+  </div>
+
+  <div class="pt-3 border-t border-sky-100">
+    <span class="text-xs font-bold text-sky-900 block mb-1.5">【蒸気比重の計算公式】</span>
+    <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-bold text-slate-800">
+      <span>蒸気比重 ＝</span>
+      <span class="inline-flex flex-col items-center px-2.5 py-1 bg-white rounded border border-sky-200 shadow-xs font-mono">
+        <span class="text-xs text-sky-900">気体の分子量 (M)</span>
+        <span class="w-full border-t border-slate-300"></span>
+        <span class="text-xs text-slate-600">空気の平均分子量 (28.8)</span>
+      </span>
+      <span class="text-xs font-normal text-slate-500 pl-1">※第4類危険物の蒸気比重はすべて「1より大きい（空気より重く低所に滞留）」</span>
+    </div>
+  </div>
+</div>
 `
         },
         {
@@ -380,24 +443,24 @@ $$\text{指定数量の倍数} = \frac{\text{危険物Aの貯蔵量}}{\text{Aの
 ---
 
 ### 2. 熱化学方程式とヘスの法則
-- **発熱反応**: $C + O_2 = CO_2 + 394 \text{ kJ}$ （燃焼は常に発熱）
+- **発熱反応（熱化学方程式）**: ` + '`C + O₂ = CO₂ + 394 kJ`' + ` （燃焼はすべて熱を発生する「発熱反応」）
 - **ヘスの法則（総熱量保存の法則）**:
   「反応熱の総量は、初めの状態と終わりの状態だけで決まり、途中の経路にはよらない」。
-  - 生成熱計算: $\text{反応熱} = (\text{生成物の燃焼熱}) - (\text{反応物の燃焼熱})$ などの式で算出。
+  - 反応熱の計算: ` + '`反応熱 ＝ （生成物の燃焼熱の和） － （反応物の燃焼熱の和）`' + ` などの式で算出。
 
 ---
 
 ### 3. 有機化合物の官能基一覧（試験頻出）
 | 官能基名 | 構造式 | 代表例 |
-| :--- | :--- | :--- |
-| **ヒドロキシ基（水酸基）** | $-\text{OH}$ | メタノール、エタノール（アルコール類） |
-| **アルデヒド基（ホルミル基）** | $-\text{CHO}$ | アセトアルデヒド（特殊引火物） |
-| **カルボニル基（ケトン基）** | $-\text{CO}-$ | アセトン（第1石油類） |
-| **カルボキシル基** | $-\text{COOH}$ | 酢酸（第2石油類） |
-| **ニトロ基** | $-\text{NO}_2$ | ニトロベンゼン（第3石油類） |
-| **アミノ基** | $-\text{NH}_2$ | アニリン（第3石油類） |
-| **エーテル結合** | $-\text{O}-$ | ジエチルエーテル（特殊引火物） |
-| **エステル結合** | $-\text{COO}-$ | 酢酸エチル（第1石油類） |
+| :--- | :---: | :--- |
+| **ヒドロキシ基（水酸基）** | **-OH** | メタノール、エタノール（アルコール類） |
+| **アルデヒド基（ホルミル基）** | **-CHO** | アセトアルデヒド（特殊引火物） |
+| **カルボニル基（ケトン基）** | **-CO-** | アセトン（第1石油類） |
+| **カルボキシル基** | **-COOH** | 酢酸（第2石油類） |
+| **ニトロ基** | **-NO₂** | ニトロベンゼン（第3石油類） |
+| **アミノ基** | **-NH₂** | アニリン（第3石油類） |
+| **エーテル結合** | **-O-** | ジエチルエーテル（特殊引火物） |
+| **エステル結合** | **-COO-** | 酢酸エチル（第1石油類） |
 `
         }
       ]
