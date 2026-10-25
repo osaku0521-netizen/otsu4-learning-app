@@ -134,6 +134,10 @@
           <!-- 復習絞り込みチェックボックス -->
           <div class="sm:col-span-2 flex flex-wrap items-center gap-3 sm:gap-4 pt-1 sm:pt-6">
             <label class="inline-flex items-center space-x-2 cursor-pointer text-sm font-semibold text-slate-700">
+              <input type="checkbox" id="filter-only-unattempted" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
+              <span>未出題の問題のみ (まだ解いていない)</span>
+            </label>
+            <label class="inline-flex items-center space-x-2 cursor-pointer text-sm font-semibold text-slate-700">
               <input type="checkbox" id="filter-only-wrong" class="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500">
               <span>間違えた問題のみ (復習)</span>
             </label>
@@ -232,7 +236,7 @@
           <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
         <h3 class="text-lg font-bold text-slate-800">条件に一致する問題がありません</h3>
-        <p class="text-sm text-slate-500 max-w-md mx-auto">「間違えた問題のみ」や「ブックマーク」の条件を外すか、出題科目フィルタを変更してください。</p>
+        <p class="text-sm text-slate-500 max-w-md mx-auto">「未出題の問題のみ」「間違えた問題のみ」や「ブックマーク」の条件を外すか、出題科目フィルタを変更してください。</p>
       </div>
 
     </section>

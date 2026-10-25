@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     practice: {
       category: 'all',
       importance: 'all',
+      onlyUnattempted: false,
       onlyWrong: false,
       onlyBookmarked: false,
       shuffleQuestions: true,
@@ -197,6 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
       list = list.filter(q => q.importance === targetImp);
     }
 
+    // 未出題（まだ解いていない問題）のみ
+    if (state.practice.onlyUnattempted) {
+      list = list.filter(q => {
+        const hist = state.userData.history[q.id];
+        return !hist || !hist.attempts || hist.attempts === 0;
+      });
+    }
+
     // 苦手問題（間違えた問題）のみ
     if (state.practice.onlyWrong) {
       list = list.filter(q => {
@@ -241,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // フィルタ状態同期
     document.getElementById('filter-category').value = state.practice.category;
     document.getElementById('filter-importance').value = state.practice.importance;
+    document.getElementById('filter-only-unattempted').checked = state.practice.onlyUnattempted;
     document.getElementById('filter-only-wrong').checked = state.practice.onlyWrong;
     document.getElementById('filter-only-bookmark').checked = state.practice.onlyBookmarked;
     document.getElementById('toggle-shuffle-q').checked = state.practice.shuffleQuestions;
@@ -445,8 +455,22 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPracticeView();
   });
 
+  document.getElementById('filter-only-unattempted').addEventListener('change', (e) => {
+    state.practice.onlyUnattempted = e.target.checked;
+    if (state.practice.onlyUnattempted) {
+      state.practice.onlyWrong = false;
+      document.getElementById('filter-only-wrong').checked = false;
+    }
+    preparePracticeQuestions();
+    renderPracticeView();
+  });
+
   document.getElementById('filter-only-wrong').addEventListener('change', (e) => {
     state.practice.onlyWrong = e.target.checked;
+    if (state.practice.onlyWrong) {
+      state.practice.onlyUnattempted = false;
+      document.getElementById('filter-only-unattempted').checked = false;
+    }
     preparePracticeQuestions();
     renderPracticeView();
   });
@@ -472,6 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-reset-filters').addEventListener('click', () => {
     state.practice.category = 'all';
     state.practice.importance = 'all';
+    state.practice.onlyUnattempted = false;
     state.practice.onlyWrong = false;
     state.practice.onlyBookmarked = false;
     state.practice.shuffleQuestions = true;
