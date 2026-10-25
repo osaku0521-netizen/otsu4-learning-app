@@ -713,11 +713,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const reviewItems = state.mock.questions.map((q, idx) => {
       const userAns = state.mock.userAnswers[idx];
-      const isCorrect = (userAns === q.correctDisplayIndex);
+      const isCorrect = (userAns !== undefined && userAns === q.correctDisplayIndex);
       if (isCorrect) {
         scoreTotal++;
         catScores[q.category].correct++;
       }
+
+      // 本番模試で解いた問題（回答済みの問題）の実績を学習履歴・達成状況に反映
+      if (userAns !== undefined) {
+        if (!state.userData.history[q.id]) {
+          state.userData.history[q.id] = { attempts: 0, correct: 0, lastAnswered: Date.now() };
+        }
+        state.userData.history[q.id].attempts++;
+        if (isCorrect) {
+          state.userData.history[q.id].correct++;
+        }
+        state.userData.history[q.id].lastAnswered = Date.now();
+      }
+
       return {
         ...q,
         index: idx,
