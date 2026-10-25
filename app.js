@@ -759,11 +759,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     saveUserData();
 
-    renderMockResultView();
+    renderMockExamView();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function renderMockResultView() {
+    const welcomeCard = document.getElementById('mock-welcome-card');
+    const examRunningCard = document.getElementById('mock-running-card');
+    const resultCard = document.getElementById('mock-result-card');
+    if (welcomeCard) welcomeCard.classList.add('hidden');
+    if (examRunningCard) examRunningCard.classList.add('hidden');
+    if (resultCard) resultCard.classList.remove('hidden');
+
     const res = state.mock.results;
     if (!res) return;
 
