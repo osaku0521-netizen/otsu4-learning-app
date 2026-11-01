@@ -62,7 +62,7 @@ questions.forEach((q, idx) => {
 });
 
 if (structuralErrors === 0) {
-  report.passedChecks.push(`全300問の基本データ構造・全5肢択一フォーマット適合確認 (エラー 0件)`);
+  report.passedChecks.push(`全${questions.length}問の基本データ構造・全5肢択一フォーマット適合確認 (エラー 0件)`);
 }
 
 // 2. 重複チェック (完全一致・類似度チェック)
@@ -227,7 +227,7 @@ if (shuffledQuestions.length === questions.length && shuffledIds.size === origin
 
 // 画面表示
 console.log('【検証結果サマリー】');
-console.log(`- 総問題数: ${report.totalQuestions} 問 (想定300問に完全合致)`);
+console.log(`- 総問題数: ${report.totalQuestions} 問 (想定420問に完全合致)`);
 console.log(`  - 危険物に関する法令: ${report.categoryCounts['法令']} 問`);
 console.log(`  - 基礎的な物理学及び基礎的な化学: ${report.categoryCounts['物理化学']} 問`);
 console.log(`  - 危険物の性質並びにその火災予防及び消火の方法: ${report.categoryCounts['性質消火']} 問`);
@@ -256,10 +256,10 @@ const mdReport = `# 乙種第4類 危険物取扱者試験 問題データベー
 
 | 科目区分 | 問題数 | 比率 | 本番出題数 (1回分) | 収録問題のカバー率 |
 | :--- | :---: | :---: | :---: | :---: |
-| **危険物に関する法令** | **${report.categoryCounts['法令']} 問** | 43.3% | 15問 | 8.7回分 (866%) |
-| **基礎的な物理学及び基礎的な化学** | **${report.categoryCounts['物理化学']} 問** | 28.3% | 10問 | 8.5回分 (850%) |
-| **危険物の性質並びにその火災予防及び消火の方法** | **${report.categoryCounts['性質消火']} 問** | 28.3% | 10問 | 8.5回分 (850%) |
-| **合計** | **${report.totalQuestions} 問** | **100.0%** | **35問** | **8.6回分 (857%)** |
+| **危険物に関する法令** | **${report.categoryCounts['法令']} 問** | ${((report.categoryCounts['法令'] / report.totalQuestions) * 100).toFixed(1)}% | 15問 | ${(report.categoryCounts['法令'] / 15).toFixed(1)}回分 (${((report.categoryCounts['法令'] / 15) * 100).toFixed(0)}%) |
+| **基礎的な物理学及び基礎的な化学** | **${report.categoryCounts['物理化学']} 問** | ${((report.categoryCounts['物理化学'] / report.totalQuestions) * 100).toFixed(1)}% | 10問 | ${(report.categoryCounts['物理化学'] / 10).toFixed(1)}回分 (${((report.categoryCounts['物理化学'] / 10) * 100).toFixed(0)}%) |
+| **危険物の性質並びにその火災予防及び消火の方法** | **${report.categoryCounts['性質消火']} 問** | ${((report.categoryCounts['性質消火'] / report.totalQuestions) * 100).toFixed(1)}% | 10問 | ${(report.categoryCounts['性質消火'] / 10).toFixed(1)}回分 (${((report.categoryCounts['性質消火'] / 10) * 100).toFixed(0)}%) |
+| **合計** | **${report.totalQuestions} 問** | **100.0%** | **35問** | **${(report.totalQuestions / 35).toFixed(1)}回分 (${((report.totalQuestions / 35) * 100).toFixed(0)}%)** |
 
 ### 頻出度 (重要度) 内訳
 - **★★★ 超頻出問題**: ${report.importanceCounts[3]} 問 (${((report.importanceCounts[3]/report.totalQuestions)*100).toFixed(1)}%)

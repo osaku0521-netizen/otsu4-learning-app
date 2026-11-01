@@ -1399,18 +1399,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let correctQ = 0;
 
     const catStats = {
-      '法令': { total: 130, answered: 0, correct: 0 },
-      '物理化学': { total: 85, answered: 0, correct: 0 },
-      '性質消火': { total: 85, answered: 0, correct: 0 }
+      '法令': { total: 0, answered: 0, correct: 0 },
+      '物理化学': { total: 0, answered: 0, correct: 0 },
+      '性質消火': { total: 0, answered: 0, correct: 0 }
     };
 
     state.allQuestions.forEach(q => {
+      if (catStats[q.category]) {
+        catStats[q.category].total++;
+      }
       const h = state.userData.history[q.id];
       if (h && h.attempts > 0) {
         answeredQ++;
         if (h.correct > 0) correctQ++;
-        catStats[q.category].answered++;
-        if (h.correct > 0) catStats[q.category].correct++;
+        if (catStats[q.category]) {
+          catStats[q.category].answered++;
+          if (h.correct > 0) catStats[q.category].correct++;
+        }
       }
     });
 
@@ -1488,5 +1493,5 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- 初回初期化起動 ---
   preparePracticeQuestions();
   renderPracticeView();
-  console.log('乙種第4類学習アプリが正常に起動しました (全300問収録)');
+  console.log(`乙種第4類学習アプリが正常に起動しました (全${state.allQuestions.length}問収録)`);
 });
