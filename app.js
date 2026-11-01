@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     practice: {
       category: 'all',
       importance: 'all',
+      chapterFilter: null, // { id: string, title: string, subCategories: string[] } | null
       onlyUnattempted: false,
       onlyWrong: false,
       onlyBookmarked: false,
@@ -107,6 +108,103 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   }
 
+  // --- サブカテゴリ ⇔ テキスト各章 マッピング定義 ---
+  const SUBCATEGORY_TO_CHAPTER = {
+    '危険物の定義・品名': { chapterId: 'tb-1-1', title: '第1章 危険物の定義・品名・指定数量', part: '第1編 法令' },
+    '指定数量とその計算': { chapterId: 'tb-1-1', title: '第1章 危険物の定義・品名・指定数量', part: '第1編 法令' },
+    '製造所等の区分': { chapterId: 'tb-1-2', title: '第2章 製造所等の区分と施設基準', part: '第1編 法令' },
+    '許認可・手続き': { chapterId: 'tb-1-2', title: '第2章 製造所等の区分と施設基準', part: '第1編 法令' },
+    '保安距離・保有空地': { chapterId: 'tb-1-2', title: '第2章 製造所等の区分と施設基準', part: '第1編 法令' },
+    '取扱者・免状・保安体制': { chapterId: 'tb-1-3', title: '第3章 危険物取扱者制度と保安管理体制', part: '第1編 法令' },
+    '構造・設備基準': { chapterId: 'tb-1-4', title: '第4章 製造所等の構造・設備の技術基準', part: '第1編 法令' },
+    '標識・掲示板': { chapterId: 'tb-1-5', title: '第5章 標識・掲示板及び消火・警報設備', part: '第1編 法令' },
+    '消火・警報設備': { chapterId: 'tb-1-5', title: '第5章 標識・掲示板及び消火・警報設備', part: '第1編 法令' },
+    '貯蔵・取扱・運搬・移送': { chapterId: 'tb-1-6', title: '第6章 貯蔵・取扱・運搬・移送の基準', part: '第1編 法令' },
+
+    '燃焼の基礎理論': { chapterId: 'tb-2-1', title: '第1章 燃焼理論・引火点・発火点・燃焼範囲', part: '第2編 物理化学' },
+    '燃焼の形態': { chapterId: 'tb-2-1', title: '第1章 燃焼理論・引火点・発火点・燃焼範囲', part: '第2編 物理化学' },
+    '引火点・発火点・燃焼範囲': { chapterId: 'tb-2-1', title: '第1章 燃焼理論・引火点・発火点・燃焼範囲', part: '第2編 物理化学' },
+    '消火理論と消火剤': { chapterId: 'tb-2-2', title: '第2章 消火理論・自然発火・静電気対策', part: '第2編 物理化学' },
+    '自然発火の機構': { chapterId: 'tb-2-2', title: '第2章 消火理論・自然発火・静電気対策', part: '第2編 物理化学' },
+    '静電気の性質と災害防止': { chapterId: 'tb-2-2', title: '第2章 消火理論・自然発火・静電気対策', part: '第2編 物理化学' },
+    '状態変化と熱力学': { chapterId: 'tb-2-3', title: '第3章 状態変化・熱力学及び気体の法則', part: '第2編 物理化学' },
+    '化学の基礎': { chapterId: 'tb-2-4', title: '第4章 化学の基礎・熱化学及び有機化学', part: '第2編 物理化学' },
+    '熱化学・ヘスの法則': { chapterId: 'tb-2-4', title: '第4章 化学の基礎・熱化学及び有機化学', part: '第2編 物理化学' },
+
+    '第4類の共通性状': { chapterId: 'tb-3-1', title: '第1章 第4類危険物の共通性状と類別比較', part: '第3編 性質消火' },
+    '特殊引火物': { chapterId: 'tb-3-2', title: '第2章 特殊引火物・第1石油類・アルコール類', part: '第3編 性質消火' },
+    '第1石油類': { chapterId: 'tb-3-2', title: '第2章 特殊引火物・第1石油類・アルコール類', part: '第3編 性質消火' },
+    'アルコール類': { chapterId: 'tb-3-2', title: '第2章 特殊引火物・第1石油類・アルコール類', part: '第3編 性質消火' },
+    '第2石油類': { chapterId: 'tb-3-3', title: '第3章 第2石油類・第3石油類・第4石油類・動植物油類', part: '第3編 性質消火' },
+    '第3石油類〜動植物油類': { chapterId: 'tb-3-3', title: '第3章 第2石油類・第3石油類・第4石油類・動植物油類', part: '第3編 性質消火' },
+    '危険物の類別概括': { chapterId: 'tb-3-4', title: '第4章 危険物の類別概括（第1類〜第6類）比較表', part: '第3編 性質消火' }
+  };
+
+  const CHAPTER_TO_SUBCATEGORIES = {
+    'tb-1-1': ['危険物の定義・品名', '指定数量とその計算'],
+    'tb-1-2': ['製造所等の区分', '許認可・手続き', '保安距離・保有空地'],
+    'tb-1-3': ['取扱者・免状・保安体制'],
+    'tb-1-4': ['構造・設備基準'],
+    'tb-1-5': ['標識・掲示板', '消火・警報設備'],
+    'tb-1-6': ['貯蔵・取扱・運搬・移送'],
+    'tb-2-1': ['燃焼の基礎理論', '燃焼の形態', '引火点・発火点・燃焼範囲'],
+    'tb-2-2': ['消火理論と消火剤', '自然発火の機構', '静電気の性質と災害防止'],
+    'tb-2-3': ['状態変化と熱力学'],
+    'tb-2-4': ['化学の基礎', '熱化学・ヘスの法則'],
+    'tb-3-1': ['第4類の共通性状'],
+    'tb-3-2': ['特殊引火物', '第1石油類', 'アルコール類'],
+    'tb-3-3': ['第2石油類', '第3石油類〜動植物油類'],
+    'tb-3-4': ['危険物の類別概括']
+  };
+
+  // --- 双方向リンク アクション関数 ---
+  // ① 問題解説からテキスト該当章へジャンプ
+  window.jumpToTextbookChapter = function(chapterId) {
+    window.switchTab('textbook');
+    setTimeout(() => {
+      const el = document.getElementById(chapterId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        el.classList.add('ring-4', 'ring-sky-400', 'transition-all');
+        setTimeout(() => {
+          el.classList.remove('ring-4', 'ring-sky-400');
+        }, 2500);
+      }
+    }, 120);
+  };
+
+  // ② テキスト各章から対応問題の一問一答演習を開始
+  window.startChapterPractice = function(chapterId) {
+    const subcats = CHAPTER_TO_SUBCATEGORIES[chapterId];
+    if (!subcats) return;
+
+    let chTitle = '';
+    for (const part of state.textbookData) {
+      const found = part.chapters.find(c => c.id === chapterId);
+      if (found) {
+        chTitle = `${part.part} ${found.title}`;
+        break;
+      }
+    }
+
+    state.practice.chapterFilter = {
+      id: chapterId,
+      title: chTitle || '選択した章',
+      subCategories: subcats
+    };
+
+    // フィルタ条件の初期化
+    state.practice.category = 'all';
+    state.practice.importance = 'all';
+    state.practice.onlyUnattempted = false;
+    state.practice.onlyWrong = false;
+    state.practice.onlyBookmarked = false;
+
+    preparePracticeQuestions();
+    window.switchTab('practice');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // --- タブ切り替え ---
   const navTabs = document.querySelectorAll('.nav-tab');
   const mobileNavTabs = document.querySelectorAll('.mobile-nav-tab');
@@ -187,9 +285,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function preparePracticeQuestions() {
     let list = [...state.allQuestions];
 
-    // 分野フィルタ
-    if (state.practice.category !== 'all') {
-      list = list.filter(q => q.category === state.practice.category);
+    // テキスト連動章フィルタ（章指定演習）
+    if (state.practice.chapterFilter) {
+      const targetSubcats = state.practice.chapterFilter.subCategories || [];
+      list = list.filter(q => targetSubcats.includes(q.subCategory));
+    } else {
+      // 通常の分野フィルタ
+      if (state.practice.category !== 'all') {
+        list = list.filter(q => q.category === state.practice.category);
+      }
     }
 
     // 頻出度フィルタ
@@ -246,6 +350,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('practice-card-container');
     const emptyState = document.getElementById('practice-empty-state');
     const q = state.practice.currentShuffledQ;
+
+    // テキスト連動章フィルタバナーの表示・非表示
+    const chapterBanner = document.getElementById('practice-chapter-banner');
+    if (chapterBanner) {
+      if (state.practice.chapterFilter) {
+        chapterBanner.classList.remove('hidden');
+        document.getElementById('practice-chapter-title').textContent = state.practice.chapterFilter.title;
+      } else {
+        chapterBanner.classList.add('hidden');
+      }
+    }
 
     // フィルタ状態同期
     document.getElementById('filter-category').value = state.practice.category;
@@ -351,6 +466,33 @@ document.addEventListener('DOMContentLoaded', () => {
         q.correctDisplayIndex,
         q.displayOptions
       );
+
+      // 要点テキスト連動リンクの動的生成
+      const textbookLinkArea = document.getElementById('practice-textbook-link-area');
+      if (textbookLinkArea) {
+        const chInfo = SUBCATEGORY_TO_CHAPTER[q.subCategory];
+        if (chInfo) {
+          textbookLinkArea.innerHTML = `
+            <div class="p-3.5 bg-gradient-to-r from-sky-50 to-indigo-50/80 border border-sky-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0">
+                  📖
+                </div>
+                <div>
+                  <span class="text-[11px] font-bold text-sky-700 tracking-wide block">要点テキストでこの論点を確認</span>
+                  <span class="text-sm font-extrabold text-slate-900">${chInfo.part} / ${chInfo.title}</span>
+                </div>
+              </div>
+              <button type="button" onclick="window.jumpToTextbookChapter('${chInfo.chapterId}')" class="px-4 py-2 bg-white hover:bg-sky-600 hover:text-white text-sky-700 border border-sky-300 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center justify-center space-x-1.5 cursor-pointer">
+                <span>テキストを開く</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+              </button>
+            </div>
+          `;
+        } else {
+          textbookLinkArea.innerHTML = '';
+        }
+      }
     } else {
       expCard.classList.add('hidden');
     }
@@ -445,9 +587,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // フィルタイベント
   document.getElementById('filter-category').addEventListener('change', (e) => {
     state.practice.category = e.target.value;
+    state.practice.chapterFilter = null; // カテゴリ変更時は章指定を解除
     preparePracticeQuestions();
     renderPracticeView();
   });
+
+  // 章指定演習の解除ボタン
+  const btnExitChapter = document.getElementById('btn-exit-chapter-practice');
+  if (btnExitChapter) {
+    btnExitChapter.addEventListener('click', () => {
+      state.practice.chapterFilter = null;
+      preparePracticeQuestions();
+      renderPracticeView();
+    });
+  }
 
   document.getElementById('filter-importance').addEventListener('change', (e) => {
     state.practice.importance = e.target.value;
@@ -496,6 +649,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-reset-filters').addEventListener('click', () => {
     state.practice.category = 'all';
     state.practice.importance = 'all';
+    state.practice.chapterFilter = null;
     state.practice.onlyUnattempted = false;
     state.practice.onlyWrong = false;
     state.practice.onlyBookmarked = false;
@@ -885,6 +1039,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const correctAnsText = item.displayOptions[item.correctDisplayIndex];
       const userAnsText = item.userSelected !== undefined ? item.displayOptions[item.userSelected] : '未回答';
+      const chInfo = SUBCATEGORY_TO_CHAPTER[item.subCategory];
 
       card.innerHTML = `
         <div class="flex items-center justify-between mb-3">
@@ -913,6 +1068,15 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="p-3.5 bg-slate-50 rounded-xl text-xs text-slate-700 border border-slate-200/80 leading-relaxed">
           <strong class="text-slate-900 block mb-1">【解説】</strong>
           ${formatExplanationText(item.explanation, item.correctDisplayIndex, item.displayOptions)}
+          ${chInfo ? `
+            <div class="mt-3 pt-2.5 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span class="text-[11px] text-slate-500">関連テキスト: <strong class="text-slate-700">${chInfo.part} ${chInfo.title}</strong></span>
+              <button type="button" onclick="window.jumpToTextbookChapter('${chInfo.chapterId}')" class="px-3 py-1.5 bg-white hover:bg-sky-600 hover:text-white text-sky-700 border border-sky-300 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center space-x-1 shrink-0 self-end sm:self-auto cursor-pointer">
+                <span>📖 要点テキストで復習</span>
+                <span>→</span>
+              </button>
+            </div>
+          ` : ''}
         </div>
       `;
       container.appendChild(card);
@@ -930,10 +1094,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderTextbookView() {
     const navContainer = document.getElementById('textbook-nav-tabs');
     const contentContainer = document.getElementById('textbook-content-area');
+    const mobileSelect = document.getElementById('mobile-textbook-select');
     if (!navContainer || !contentContainer) return;
 
     navContainer.innerHTML = '';
     contentContainer.innerHTML = '';
+    if (mobileSelect) mobileSelect.innerHTML = '';
 
     state.textbookData.forEach((part, partIdx) => {
       // 編コンテナ
@@ -942,7 +1108,7 @@ document.addEventListener('DOMContentLoaded', () => {
       partSection.id = part.id;
 
       const partHeader = document.createElement('div');
-      partHeader.className = 'flex items-center space-x-3 mb-6 pb-3 border-b-2 border-slate-200';
+      partHeader.className = 'flex items-center space-x-3 mb-6 pb-3 border-b-2 border-slate-200 scroll-mt-20';
       partHeader.innerHTML = `
         <span class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-sky-100 text-sky-800">${part.part}</span>
         <h2 class="text-2xl font-bold text-slate-900">${part.title}</h2>
@@ -952,23 +1118,74 @@ document.addEventListener('DOMContentLoaded', () => {
       // 各章
       part.chapters.forEach(ch => {
         const chCard = document.createElement('div');
-        chCard.className = 'p-6 rounded-2xl bg-white border border-slate-200 shadow-sm mb-6';
+        chCard.id = ch.id;
+        chCard.className = 'p-6 rounded-2xl bg-white border border-slate-200 shadow-sm mb-6 scroll-mt-20 transition-all';
+
+        // この章に対応する問題数を集計
+        const targetSubcats = CHAPTER_TO_SUBCATEGORIES[ch.id] || [];
+        const qCount = state.allQuestions.filter(q => targetSubcats.includes(q.subCategory)).length;
+
         chCard.innerHTML = `
-          <h3 class="text-xl font-bold text-slate-900 mb-2">${ch.title}</h3>
-          <p class="text-xs text-slate-500 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-100">${ch.summary}</p>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-100">
+            <h3 class="text-xl font-extrabold text-slate-900">${ch.title}</h3>
+            <span class="text-xs font-bold px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 self-start sm:self-auto shadow-xs">
+              過去問演習: 全 ${qCount} 問
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-100 leading-relaxed">${ch.summary}</p>
           <div class="textbook-prose leading-relaxed">${renderMarkdownSimple(ch.content)}</div>
+
+          <!-- この章の問題を解くアクションボックス -->
+          <div class="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-sky-50 to-indigo-50/70 p-4 rounded-xl border border-sky-100">
+            <div>
+              <span class="text-xs font-bold text-sky-800 block mb-0.5">知識の定着チェック</span>
+              <p class="text-xs text-slate-600">この章（${ch.title}）から厳選された過去問 ${qCount}問に挑戦できます</p>
+            </div>
+            <button type="button" onclick="window.startChapterPractice('${ch.id}')" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/25 transition-all flex items-center justify-center space-x-1.5 shrink-0 cursor-pointer">
+              <span>✍️ この章の問題を解く (${qCount}問)</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+          </div>
         `;
         partSection.appendChild(chCard);
       });
 
       contentContainer.appendChild(partSection);
 
-      // ナビゲーションリンク
-      const navLink = document.createElement('a');
-      navLink.href = `#${part.id}`;
-      navLink.className = 'block px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:text-sky-600 hover:bg-sky-50 bg-slate-50 lg:bg-transparent border border-slate-200 lg:border-transparent transition-all shrink-0';
-      navLink.textContent = `${part.part}: ${part.title}`;
-      navContainer.appendChild(navLink);
+      // PCサイドバー ナビゲーションリンク
+      const navGroup = document.createElement('div');
+      navGroup.className = 'mb-3.5';
+
+      const navPartHeader = document.createElement('a');
+      navPartHeader.href = `#${part.id}`;
+      navPartHeader.className = 'block px-3 py-2 rounded-xl text-xs font-bold text-slate-900 hover:text-sky-600 hover:bg-sky-50 transition-all';
+      navPartHeader.textContent = `${part.part}: ${part.title}`;
+      navGroup.appendChild(navPartHeader);
+
+      const chList = document.createElement('div');
+      chList.className = 'pl-2 space-y-0.5 mt-1 border-l-2 border-slate-100';
+      part.chapters.forEach(ch => {
+        const chLink = document.createElement('a');
+        chLink.href = `#${ch.id}`;
+        chLink.className = 'block px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:text-sky-600 hover:underline transition-all truncate';
+        chLink.textContent = ch.title;
+        chList.appendChild(chLink);
+      });
+      navGroup.appendChild(chList);
+      navContainer.appendChild(navGroup);
+
+      // モバイル目次セレクトのグループ追加
+      if (mobileSelect) {
+        const optGroup = document.createElement('optgroup');
+        optGroup.label = `${part.part}: ${part.title}`;
+        part.chapters.forEach(ch => {
+          const opt = document.createElement('option');
+          opt.value = ch.id;
+          opt.textContent = ch.title;
+          optGroup.appendChild(opt);
+        });
+        mobileSelect.appendChild(optGroup);
+      }
     });
   }
 

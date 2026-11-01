@@ -105,6 +105,21 @@
     <!-- ======================================================== -->
     <section id="sec-practice" class="space-y-5 sm:space-y-6">
 
+      <!-- テキスト連動・章別演習中の案内バナー (章指定時のみ表示) -->
+      <div id="practice-chapter-banner" class="hidden p-4 bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-fade-in">
+        <div class="flex items-center space-x-3">
+          <span class="px-2.5 py-1 bg-sky-600 text-white font-extrabold text-xs rounded-lg shadow-sm">テキスト連動演習中</span>
+          <div>
+            <span class="text-xs text-slate-500 font-medium block">現在解いている章</span>
+            <span id="practice-chapter-title" class="text-sm font-extrabold text-slate-900">第1章 危険物の定義・品名・指定数量</span>
+          </div>
+        </div>
+        <button type="button" id="btn-exit-chapter-practice" class="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-xs self-end sm:self-auto flex items-center space-x-1 cursor-pointer">
+          <span>全問演習に戻る</span>
+          <span>✕</span>
+        </button>
+      </div>
+
       <!-- フィルター操作バー -->
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -214,6 +229,9 @@
               <!-- JSで動的設定 -->
             </div>
           </div>
+
+          <!-- 要点テキスト連動リンク (JSで動的生成) -->
+          <div id="practice-textbook-link-area"></div>
         </div>
 
         <!-- 前へ・次へ ナビゲーションバー -->
