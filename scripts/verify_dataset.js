@@ -116,6 +116,48 @@ if (outOfScopeFound === 0) {
   report.passedChecks.push(`乙4出題範囲外キーワード混入チェック完了 (範囲外 0件)`);
 }
 
+// 3.5. 選択肢シャッフル阻害・数式文字化け・解説整合性チェック
+let shuffleIncompatibleCount = 0;
+let latexLeakCount = 0;
+let expMismatchCount = 0;
+
+questions.forEach(q => {
+  // ① シャッフルで破綻する相対位置依存の選択肢（上記1〜4、前述など）の禁止
+  q.options.forEach((opt, optIdx) => {
+    if (opt.includes('上記') || opt.includes('1〜4') || opt.includes('1~4') || opt.includes('すべてが正しい') || opt.includes('すべて誤り') || opt.includes('すべて該当')) {
+      report.errors.push(`[ID:${q.id}] 選択肢${optIdx + 1}にシャッフル阻害表現「${opt}」が含まれています`);
+      shuffleIncompatibleCount++;
+    }
+  });
+
+  // ② 制御文字や未エスケープLaTeXコードによる文字化け禁止
+  const fullText = q.question + ' ' + q.options.join(' ') + ' ' + q.explanation;
+  if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(fullText) || fullText.includes('rac{') || fullText.includes('imes') || fullText.includes('ext{') || fullText.includes('\\frac')) {
+    report.errors.push(`[ID:${q.id}] テキスト内に制御文字または未レンダリングLaTeXコードが含まれています`);
+    latexLeakCount++;
+  }
+
+  // ③ 解説文冒頭の【正解: X】とanswerIndexの完全一致確認
+  const match = q.explanation.match(/【正解:\s*([1-5])】/);
+  if (match) {
+    const expNum = parseInt(match[1]) - 1;
+    if (expNum !== q.answerIndex) {
+      report.errors.push(`[ID:${q.id}] answerIndex(${q.answerIndex + 1})と解説文の正解番号(${expNum + 1})が食い違っています`);
+      expMismatchCount++;
+    }
+  }
+});
+
+if (shuffleIncompatibleCount === 0) {
+  report.passedChecks.push(`選択肢シャッフル阻害表現（「上記」「1〜4」等）チェック完了 (違反 0件)`);
+}
+if (latexLeakCount === 0) {
+  report.passedChecks.push(`数式文字化け・制御文字・未展開LaTeX混入チェック完了 (エラー 0件)`);
+}
+if (expMismatchCount === 0) {
+  report.passedChecks.push(`正解肢インデックスと解説文の正解番号一致チェック完了 (エラー 0件)`);
+}
+
 // 4. 出題範囲の網羅性チェック
 const requiredSubtopics = {
   "法令": [
