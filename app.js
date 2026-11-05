@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     textbookData: window.OTSU4_TEXTBOOK || [],
     glossaryData: window.OTSU4_GLOSSARY || [],
     currentTab: 'practice', // 'practice' | 'mock' | 'textbook' | 'glossary' | 'stats'
+    practiceSubMode: 'standard', // 'standard' | 'marubatsu'
     
     // 演習モード状態
     practice: {
@@ -22,6 +23,23 @@ document.addEventListener('DOMContentLoaded', () => {
       currentShuffledQ: null,
       answered: false,
       userSelectedIndex: null
+    },
+
+    // 〇✕瞬殺特訓モード状態
+    marubatsu: {
+      category: 'all',
+      importance: 'all',
+      onlyUnattempted: false,
+      onlyWrong: false,
+      pool: [],
+      list: [],
+      currentIndex: 0,
+      currentStreak: 0,
+      maxStreak: 0,
+      sessionAnswered: 0,
+      sessionCorrect: 0,
+      answered: false,
+      selectedAnswer: null
     },
 
     // 模擬試験モード状態
@@ -48,17 +66,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- ローカルストレージ管理 ---
   function loadUserData() {
+    let data = {
+      history: {}, // questionId -> { attempts: number, correct: number, lastAnswered: timestamp }
+      bookmarks: {}, // questionId -> boolean
+      mockHistory: [], // { date, score, total, categoryScores, passed }
+      marubatsuHistory: {}, // mbId -> { attempts: number, correct: number, lastAnswered: timestamp }
+      marubatsuMaxStreak: 0
+    };
     try {
       const saved = localStorage.getItem('otsu4_user_data_v1');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        data = { ...data, ...parsed };
+        data.marubatsuHistory = data.marubatsuHistory || {};
+        data.marubatsuMaxStreak = data.marubatsuMaxStreak || 0;
+      }
     } catch (e) {
       console.warn('LocalStorage load error:', e);
     }
-    return {
-      history: {}, // questionId -> { attempts: number, correct: number, lastAnswered: timestamp }
-      bookmarks: {}, // questionId -> boolean
-      mockHistory: [] // { date, score, total, categoryScores, passed }
-    };
+    return data;
   }
 
   function saveUserData() {
@@ -212,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const tabNamesMap = {
     practice: '一問一答',
+    marubatsu: '〇✕特訓',
     mock: '本番模試',
     textbook: '要点テキスト',
     glossary: '用語解説',
@@ -227,11 +254,20 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.switchTab = function(tabName) {
-    state.currentTab = tabName;
+    if (tabName === 'marubatsu') {
+      state.currentTab = 'practice';
+      state.practiceSubMode = 'marubatsu';
+    } else {
+      state.currentTab = tabName;
+    }
+
+    const effectiveDesktopTab = (tabName === 'marubatsu' || (state.currentTab === 'practice' && state.practiceSubMode === 'marubatsu'))
+      ? 'marubatsu'
+      : state.currentTab;
 
     // デスクトップ ナビゲーション更新
     navTabs.forEach(btn => {
-      const isTarget = btn.dataset.tab === tabName;
+      const isTarget = btn.dataset.tab === effectiveDesktopTab;
       btn.classList.toggle('text-sky-600', isTarget);
       btn.classList.toggle('border-b-2', isTarget);
       btn.classList.toggle('border-sky-600', isTarget);
@@ -241,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // モバイル用 ボトムナビゲーション更新
     mobileNavTabs.forEach(btn => {
-      const isTarget = btn.dataset.tab === tabName;
+      const isTarget = btn.dataset.tab === state.currentTab;
       btn.classList.toggle('text-sky-600', isTarget);
       btn.classList.toggle('font-bold', isTarget);
       btn.classList.toggle('text-slate-500', !isTarget);
@@ -249,23 +285,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // モバイル用 ヘッダー現在タブバッジ更新
-    if (mobileTabLabel && tabNamesMap[tabName]) {
-      mobileTabLabel.textContent = tabNamesMap[tabName];
+    if (mobileTabLabel) {
+      if (state.currentTab === 'practice' && state.practiceSubMode === 'marubatsu') {
+        mobileTabLabel.textContent = '〇✕特訓';
+      } else if (tabNamesMap[state.currentTab]) {
+        mobileTabLabel.textContent = tabNamesMap[state.currentTab];
+      }
     }
 
     Object.keys(sections).forEach(key => {
       if (sections[key]) {
-        sections[key].classList.toggle('hidden', key !== tabName);
+        sections[key].classList.toggle('hidden', key !== state.currentTab);
       }
     });
 
-    if (tabName === 'practice') {
-      renderPracticeView();
-    } else if (tabName === 'textbook') {
+    if (state.currentTab === 'practice') {
+      updatePracticeSubModeUI();
+      if (state.practiceSubMode === 'marubatsu') {
+        renderMarubatsuView();
+      } else {
+        renderPracticeView();
+      }
+    } else if (state.currentTab === 'textbook') {
       renderTextbookView();
-    } else if (tabName === 'glossary') {
+    } else if (state.currentTab === 'glossary') {
       renderGlossaryView();
-    } else if (tabName === 'stats') {
+    } else if (state.currentTab === 'stats') {
       renderStatsView();
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -657,6 +702,433 @@ document.addEventListener('DOMContentLoaded', () => {
     state.practice.shuffleOptions = true;
     preparePracticeQuestions();
     renderPracticeView();
+  });
+
+  // ==========================================
+  // 1.5 演習サブモード切り替え & 〇✕瞬殺特訓モード
+  // ==========================================
+  window.switchPracticeSubMode = function(subMode) {
+    state.practiceSubMode = subMode;
+    updatePracticeSubModeUI();
+
+    const effectiveDesktopTab = (subMode === 'marubatsu') ? 'marubatsu' : 'practice';
+    navTabs.forEach(btn => {
+      const isTarget = btn.dataset.tab === effectiveDesktopTab;
+      btn.classList.toggle('text-sky-600', isTarget);
+      btn.classList.toggle('border-b-2', isTarget);
+      btn.classList.toggle('border-sky-600', isTarget);
+      btn.classList.toggle('font-bold', isTarget);
+      btn.classList.toggle('text-slate-600', !isTarget);
+    });
+
+    if (mobileTabLabel) {
+      mobileTabLabel.textContent = (subMode === 'marubatsu') ? '〇✕特訓' : '一問一答';
+    }
+
+    if (subMode === 'marubatsu') {
+      renderMarubatsuView();
+    } else {
+      renderPracticeView();
+    }
+  };
+
+  window.switchToMarubatsuMode = function() {
+    window.switchTab('marubatsu');
+  };
+
+  function updatePracticeSubModeUI() {
+    const isMb = (state.practiceSubMode === 'marubatsu');
+    const stdView = document.getElementById('practice-standard-view');
+    const mbView = document.getElementById('practice-marubatsu-view');
+    const btnStd = document.getElementById('btn-submode-standard');
+    const btnMb = document.getElementById('btn-submode-marubatsu');
+
+    if (stdView) stdView.classList.toggle('hidden', isMb);
+    if (mbView) mbView.classList.toggle('hidden', !isMb);
+
+    if (btnStd && btnMb) {
+      if (isMb) {
+        btnStd.className = 'flex-1 py-2 px-3 text-xs sm:text-sm font-extrabold rounded-xl transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center space-x-1.5 cursor-pointer';
+        btnMb.className = 'flex-1 py-2 px-3 text-xs sm:text-sm font-extrabold rounded-xl transition-all shadow-xs bg-white text-amber-600 border border-amber-200/60 flex items-center justify-center space-x-1.5 cursor-pointer';
+      } else {
+        btnStd.className = 'flex-1 py-2 px-3 text-xs sm:text-sm font-extrabold rounded-xl transition-all shadow-xs bg-white text-sky-600 border border-sky-200/60 flex items-center justify-center space-x-1.5 cursor-pointer';
+        btnMb.className = 'flex-1 py-2 px-3 text-xs sm:text-sm font-extrabold rounded-xl transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center space-x-1.5 cursor-pointer';
+      }
+    }
+  }
+
+  const btnSubStd = document.getElementById('btn-submode-standard');
+  const btnSubMb = document.getElementById('btn-submode-marubatsu');
+  if (btnSubStd) btnSubStd.addEventListener('click', () => switchPracticeSubMode('standard'));
+  if (btnSubMb) btnSubMb.addEventListener('click', () => switchPracticeSubMode('marubatsu'));
+
+  // --- 〇✕命題プール自動生成 ---
+  function buildMarubatsuPool(allQuestions) {
+    const items = [];
+    allQuestions.forEach(q => {
+      const isAskCorrect = q.question.includes('正しいもの') || q.question.includes('適切') || q.question.includes('該当するもの');
+      const isAskWrong = q.question.includes('誤っている') || q.question.includes('異なる') || q.question.includes('含まれない') || q.question.includes('該当しない');
+
+      if (!isAskCorrect && !isAskWrong) {
+        const opt = q.options[q.answerIndex];
+        if (opt && opt.length >= 12) {
+          items.push({
+            id: 'mb-' + q.id + '-' + q.answerIndex,
+            sourceQuestionId: q.id,
+            category: q.category,
+            subCategory: q.subCategory,
+            importance: q.importance,
+            statement: opt,
+            isCorrect: true,
+            explanation: '【◯ 正しい記述】\n' + q.explanation.replace(/【正解:\s*[1-5]】\n?/, '')
+          });
+        }
+        return;
+      }
+
+      q.options.forEach((opt, idx) => {
+        if (!opt || opt.length < 10) return;
+        
+        let isTrue = false;
+        if (isAskCorrect) isTrue = (idx === q.answerIndex);
+        else if (isAskWrong) isTrue = (idx !== q.answerIndex);
+
+        let exp = '';
+        if (isTrue) {
+          if (idx === q.answerIndex) {
+            exp = '【◯ 正しい記述】\n' + q.explanation.replace(/【正解:\s*[1-5]】\n?/, '');
+          } else {
+            exp = '【◯ 正しい記述】\nこの記述は法令・基礎理論に合致した正しい内容です。\n（' + q.subCategory + 'の重要論点）';
+          }
+        } else {
+          if (idx === q.answerIndex) {
+            exp = '【✕ 誤りの記述】\n' + q.explanation.replace(/【正解:\s*[1-5]】\n?/, '');
+          } else {
+            exp = '【✕ 誤りの記述】\nこの記述には誤りが含まれています。\n（' + q.subCategory + 'の引っかけ論点）';
+          }
+        }
+
+        items.push({
+          id: 'mb-' + q.id + '-' + idx,
+          sourceQuestionId: q.id,
+          category: q.category,
+          subCategory: q.subCategory,
+          importance: q.importance,
+          statement: opt,
+          isCorrect: isTrue,
+          explanation: exp
+        });
+      });
+    });
+    return items;
+  }
+
+  function prepareMarubatsuList() {
+    if (state.marubatsu.pool.length === 0) {
+      state.marubatsu.pool = buildMarubatsuPool(state.allQuestions);
+    }
+
+    let filtered = [...state.marubatsu.pool];
+
+    // 科目フィルタ
+    if (state.marubatsu.category !== 'all') {
+      filtered = filtered.filter(item => item.category === state.marubatsu.category);
+    }
+
+    // 頻出度フィルタ
+    if (state.marubatsu.importance !== 'all') {
+      const imp = parseInt(state.marubatsu.importance, 10);
+      filtered = filtered.filter(item => item.importance >= imp);
+    }
+
+    // 未出題のみフィルタ
+    if (state.marubatsu.onlyUnattempted) {
+      filtered = filtered.filter(item => {
+        const h = state.userData.marubatsuHistory[item.id];
+        return !h || h.attempts === 0;
+      });
+    }
+
+    // 間違えた問題のみフィルタ
+    if (state.marubatsu.onlyWrong) {
+      filtered = filtered.filter(item => {
+        const h = state.userData.marubatsuHistory[item.id];
+        return h && h.attempts > h.correct;
+      });
+    }
+
+    // シャッフル
+    shuffleArray(filtered);
+
+    state.marubatsu.list = filtered;
+    state.marubatsu.currentIndex = 0;
+    state.marubatsu.answered = false;
+    state.marubatsu.selectedAnswer = null;
+  }
+
+  function renderMarubatsuView() {
+    if (state.marubatsu.list.length === 0) {
+      prepareMarubatsuList();
+    }
+
+    const total = state.marubatsu.list.length;
+    const cardContainer = document.getElementById('mb-card-container');
+    const emptyState = document.getElementById('mb-empty-state');
+    const totalCountEl = document.getElementById('mb-total-count');
+    const currentNumEl = document.getElementById('mb-current-num');
+
+    if (total === 0) {
+      if (cardContainer) cardContainer.classList.add('hidden');
+      if (emptyState) emptyState.classList.remove('hidden');
+      if (totalCountEl) totalCountEl.textContent = '0';
+      if (currentNumEl) currentNumEl.textContent = '0';
+      return;
+    }
+
+    if (cardContainer) cardContainer.classList.remove('hidden');
+    if (emptyState) emptyState.classList.add('hidden');
+
+    const currIdx = state.marubatsu.currentIndex;
+    const item = state.marubatsu.list[currIdx];
+
+    if (totalCountEl) totalCountEl.textContent = total;
+    if (currentNumEl) currentNumEl.textContent = currIdx + 1;
+
+    updateMarubatsuStatsUI();
+
+    const catBadge = document.getElementById('mb-category-badge');
+    const subBadge = document.getElementById('mb-subcategory-badge');
+    const impBadge = document.getElementById('mb-importance-badge');
+    const textEl = document.getElementById('mb-statement-text');
+
+    if (catBadge) catBadge.textContent = item.category;
+    if (subBadge) subBadge.textContent = item.subCategory;
+    if (impBadge) {
+      impBadge.textContent = '★'.repeat(item.importance) + (item.importance === 3 ? ' 超頻出' : item.importance === 2 ? ' 頻出' : ' 重要');
+      impBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold border ' + 
+        (item.importance === 3 ? 'bg-amber-50 text-amber-700 border-amber-300' : 'bg-slate-50 text-slate-600 border-slate-200');
+    }
+
+    if (textEl) {
+      textEl.textContent = item.statement;
+    }
+
+    const actionsContainer = document.getElementById('mb-actions-container');
+    const expCard = document.getElementById('mb-explanation-card');
+
+    if (!state.marubatsu.answered) {
+      if (actionsContainer) actionsContainer.classList.remove('hidden');
+      if (expCard) expCard.classList.add('hidden');
+    } else {
+      if (actionsContainer) actionsContainer.classList.add('hidden');
+      if (expCard) expCard.classList.remove('hidden');
+      renderMarubatsuFeedback(item);
+    }
+  }
+
+  function handleMarubatsuAnswer(userChoice) {
+    if (state.marubatsu.answered) return;
+    if (state.marubatsu.list.length === 0) return;
+
+    const item = state.marubatsu.list[state.marubatsu.currentIndex];
+    const isCorrect = (userChoice === item.isCorrect);
+
+    state.marubatsu.answered = true;
+    state.marubatsu.selectedAnswer = userChoice;
+    state.marubatsu.sessionAnswered++;
+    if (isCorrect) state.marubatsu.sessionCorrect++;
+
+    // ストリーク
+    if (isCorrect) {
+      state.marubatsu.currentStreak++;
+      if (state.marubatsu.currentStreak > state.marubatsu.maxStreak) {
+        state.marubatsu.maxStreak = state.marubatsu.currentStreak;
+      }
+      if (state.marubatsu.currentStreak > (state.userData.marubatsuMaxStreak || 0)) {
+        state.userData.marubatsuMaxStreak = state.marubatsu.currentStreak;
+      }
+    } else {
+      state.marubatsu.currentStreak = 0;
+    }
+
+    // 履歴保存
+    const hist = state.userData.marubatsuHistory[item.id] || { attempts: 0, correct: 0, lastAnswered: 0 };
+    hist.attempts++;
+    if (isCorrect) hist.correct++;
+    hist.lastAnswered = Date.now();
+    state.userData.marubatsuHistory[item.id] = hist;
+    saveUserData();
+
+    renderMarubatsuView();
+  }
+
+  function renderMarubatsuFeedback(item) {
+    const isCorrect = (state.marubatsu.selectedAnswer === item.isCorrect);
+    const resultBanner = document.getElementById('mb-result-banner');
+    const expTextEl = document.getElementById('mb-explanation-text');
+    const linkArea = document.getElementById('mb-textbook-link-area');
+
+    if (resultBanner) {
+      if (isCorrect) {
+        resultBanner.className = 'p-4 sm:p-5 rounded-2xl flex items-center justify-between shadow-sm bg-emerald-50 border border-emerald-300 text-emerald-900 animate-fade-in';
+        resultBanner.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <span class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black text-xl shadow-xs">✓</span>
+            <div>
+              <span class="font-black text-base sm:text-lg text-emerald-800">正解！</span>
+              <p class="text-xs text-emerald-700 font-medium">この記述は <strong>【 ${item.isCorrect ? '◯ 正しい記述' : '✕ 誤りの記述'} 】</strong> です</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 bg-emerald-600 text-white font-extrabold text-xs rounded-full shadow-xs">🔥 ${state.marubatsu.currentStreak} 連続正解！</span>
+        `;
+      } else {
+        resultBanner.className = 'p-4 sm:p-5 rounded-2xl flex items-center justify-between shadow-sm bg-rose-50 border border-rose-300 text-rose-900 animate-fade-in';
+        resultBanner.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <span class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center font-black text-xl shadow-xs">✕</span>
+            <div>
+              <span class="font-black text-base sm:text-lg text-rose-800">不正解…</span>
+              <p class="text-xs text-rose-700 font-medium">正しくは <strong>【 ${item.isCorrect ? '◯ 正しい記述' : '✕ 誤りの記述'} 】</strong> です（あなたは ${state.marubatsu.selectedAnswer ? '◯' : '✕'} を選択）</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 bg-slate-200 text-slate-700 font-bold text-xs rounded-full">ストリークリセット</span>
+        `;
+      }
+    }
+
+    if (expTextEl) {
+      expTextEl.textContent = item.explanation;
+    }
+
+    if (linkArea) {
+      const chInfo = findChapterBySubCategory(item.subCategory);
+      if (chInfo) {
+        linkArea.innerHTML = `
+          <div class="p-3.5 rounded-xl bg-sky-50 border border-sky-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div class="flex items-center space-x-2 text-xs text-sky-900 font-bold">
+              <span>📖</span>
+              <span>要点テキストで復習: <strong>${chInfo.title}</strong></span>
+            </div>
+            <button type="button" onclick="window.jumpToTextbookChapter('${chInfo.chapterId}')" class="px-3 py-1.5 bg-white hover:bg-sky-600 hover:text-white text-sky-700 border border-sky-300 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center space-x-1 shrink-0 self-end sm:self-auto cursor-pointer">
+              <span>テキストを開く</span>
+              <span>➔</span>
+            </button>
+          </div>
+        `;
+      } else {
+        linkArea.innerHTML = '';
+      }
+    }
+  }
+
+  function nextMarubatsuQuestion() {
+    if (state.marubatsu.currentIndex < state.marubatsu.list.length - 1) {
+      state.marubatsu.currentIndex++;
+    } else {
+      shuffleArray(state.marubatsu.list);
+      state.marubatsu.currentIndex = 0;
+    }
+    state.marubatsu.answered = false;
+    state.marubatsu.selectedAnswer = null;
+    renderMarubatsuView();
+  }
+
+  function updateMarubatsuStatsUI() {
+    const streakText = document.getElementById('mb-streak-text');
+    const maxStreakEl = document.getElementById('mb-max-streak');
+    const sessionAccEl = document.getElementById('mb-session-accuracy');
+    const sessionCountsEl = document.getElementById('mb-session-counts');
+
+    if (streakText) streakText.textContent = `${state.marubatsu.currentStreak}問連続正解中`;
+    if (maxStreakEl) maxStreakEl.textContent = Math.max(state.marubatsu.maxStreak, state.userData.marubatsuMaxStreak || 0);
+
+    const sAns = state.marubatsu.sessionAnswered;
+    const sCor = state.marubatsu.sessionCorrect;
+    const sPct = sAns > 0 ? Math.round((sCor / sAns) * 100) : 0;
+
+    if (sessionAccEl) sessionAccEl.textContent = `${sPct}%`;
+    if (sessionCountsEl) sessionCountsEl.textContent = `${sCor}/${sAns}問`;
+  }
+
+  // --- 〇✕操作イベント登録 ---
+  const mbBtnTrue = document.getElementById('mb-btn-true');
+  const mbBtnFalse = document.getElementById('mb-btn-false');
+  const mbBtnNext = document.getElementById('mb-btn-next');
+
+  if (mbBtnTrue) mbBtnTrue.addEventListener('click', () => handleMarubatsuAnswer(true));
+  if (mbBtnFalse) mbBtnFalse.addEventListener('click', () => handleMarubatsuAnswer(false));
+  if (mbBtnNext) mbBtnNext.addEventListener('click', () => nextMarubatsuQuestion());
+
+  // 〇✕フィルター変更イベント
+  const mbFilterCat = document.getElementById('mb-filter-category');
+  const mbFilterImp = document.getElementById('mb-filter-importance');
+  const mbFilterUnattempted = document.getElementById('mb-filter-only-unattempted');
+  const mbFilterWrong = document.getElementById('mb-filter-only-wrong');
+  const mbBtnReset = document.getElementById('mb-btn-reset-filters');
+
+  if (mbFilterCat) {
+    mbFilterCat.addEventListener('change', (e) => {
+      state.marubatsu.category = e.target.value;
+      prepareMarubatsuList();
+      renderMarubatsuView();
+    });
+  }
+  if (mbFilterImp) {
+    mbFilterImp.addEventListener('change', (e) => {
+      state.marubatsu.importance = e.target.value;
+      prepareMarubatsuList();
+      renderMarubatsuView();
+    });
+  }
+  if (mbFilterUnattempted) {
+    mbFilterUnattempted.addEventListener('change', (e) => {
+      state.marubatsu.onlyUnattempted = e.target.checked;
+      prepareMarubatsuList();
+      renderMarubatsuView();
+    });
+  }
+  if (mbFilterWrong) {
+    mbFilterWrong.addEventListener('change', (e) => {
+      state.marubatsu.onlyWrong = e.target.checked;
+      prepareMarubatsuList();
+      renderMarubatsuView();
+    });
+  }
+  if (mbBtnReset) {
+    mbBtnReset.addEventListener('click', () => {
+      state.marubatsu.category = 'all';
+      state.marubatsu.importance = 'all';
+      state.marubatsu.onlyUnattempted = false;
+      state.marubatsu.onlyWrong = false;
+      if (mbFilterCat) mbFilterCat.value = 'all';
+      if (mbFilterImp) mbFilterImp.value = 'all';
+      if (mbFilterUnattempted) mbFilterUnattempted.checked = false;
+      if (mbFilterWrong) mbFilterWrong.checked = false;
+      prepareMarubatsuList();
+      renderMarubatsuView();
+    });
+  }
+
+  // --- キーボードショートカット (〇✕特訓対応) ---
+  document.addEventListener('keydown', (e) => {
+    if (state.currentTab === 'practice' && state.practiceSubMode === 'marubatsu') {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+      if (!state.marubatsu.answered) {
+        if (e.key === 'ArrowLeft' || e.key === '1') {
+          e.preventDefault();
+          handleMarubatsuAnswer(true);
+        } else if (e.key === 'ArrowRight' || e.key === '2') {
+          e.preventDefault();
+          handleMarubatsuAnswer(false);
+        }
+      } else {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          nextMarubatsuQuestion();
+        }
+      }
+    }
   });
 
   // ==========================================
@@ -1427,6 +1899,25 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('stats-answered-count').textContent = `${answeredQ} / ${totalQ} 問`;
     document.getElementById('stats-accuracy-rate').textContent = `${overallPct}%`;
     document.getElementById('stats-bookmark-count').textContent = `${Object.values(state.userData.bookmarks).filter(Boolean).length} 問`;
+
+    // 〇✕特訓の進捗表示
+    const mbHist = state.userData.marubatsuHistory || {};
+    const mbKeys = Object.keys(mbHist);
+    let mbAnsCount = 0;
+    let mbCorCount = 0;
+    mbKeys.forEach(k => {
+      if (mbHist[k].attempts > 0) {
+        mbAnsCount++;
+        if (mbHist[k].correct > 0) mbCorCount++;
+      }
+    });
+    const mbPct = mbAnsCount > 0 ? Math.round((mbCorCount / mbAnsCount) * 100) : 0;
+    const mbAnsEl = document.getElementById('stats-mb-answered-count');
+    const mbAccEl = document.getElementById('stats-mb-accuracy-rate');
+    const mbMaxEl = document.getElementById('stats-mb-max-streak');
+    if (mbAnsEl) mbAnsEl.textContent = mbAnsCount;
+    if (mbAccEl) mbAccEl.textContent = `${mbPct}%`;
+    if (mbMaxEl) mbMaxEl.textContent = state.userData.marubatsuMaxStreak || 0;
 
     // カテゴリ別カード
     ['法令', '物理化学', '性質消火'].forEach(cat => {
