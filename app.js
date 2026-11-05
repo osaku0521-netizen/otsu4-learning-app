@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const tabNamesMap = {
     practice: '一問一答',
-    marubatsu: '〇✕特訓',
+    marubatsu: '〇✕演習',
     mock: '本番模試',
     textbook: '要点テキスト',
     glossary: '用語解説',
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // モバイル用 ヘッダー現在タブバッジ更新
     if (mobileTabLabel) {
       if (state.currentTab === 'practice' && state.practiceSubMode === 'marubatsu') {
-        mobileTabLabel.textContent = '〇✕特訓';
+        mobileTabLabel.textContent = '〇✕演習';
       } else if (tabNamesMap[state.currentTab]) {
         mobileTabLabel.textContent = tabNamesMap[state.currentTab];
       }
@@ -705,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 1.5 演習サブモード切り替え & 〇✕瞬殺特訓モード
+  // 1.5 演習サブモード切り替え & 〇✕演習モード
   // ==========================================
   window.switchPracticeSubMode = function(subMode) {
     state.practiceSubMode = subMode;
@@ -722,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (mobileTabLabel) {
-      mobileTabLabel.textContent = (subMode === 'marubatsu') ? '〇✕特訓' : '一問一答';
+      mobileTabLabel.textContent = (subMode === 'marubatsu') ? '〇✕演習' : '一問一答';
     }
 
     if (subMode === 'marubatsu') {
@@ -877,10 +877,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // シャッフル
-    shuffleArray(filtered);
-
-    state.marubatsu.list = filtered;
+    // シャッフル（ランダム出題順）
+    state.marubatsu.list = shuffleArray(filtered);
     state.marubatsu.currentIndex = 0;
     state.marubatsu.answered = false;
     state.marubatsu.selectedAnswer = null;
@@ -1001,7 +999,6 @@ document.addEventListener('DOMContentLoaded', () => {
               <p class="text-xs text-emerald-700 font-medium">この記述は <strong>【 ${item.isCorrect ? '◯ 正しい記述' : '✕ 誤りの記述'} 】</strong> です</p>
             </div>
           </div>
-          <span class="px-3 py-1 bg-emerald-600 text-white font-extrabold text-xs rounded-full shadow-xs">🔥 ${state.marubatsu.currentStreak} 連続正解！</span>
         `;
       } else {
         resultBanner.className = 'p-4 sm:p-5 rounded-2xl flex items-center justify-between shadow-sm bg-rose-50 border border-rose-300 text-rose-900 animate-fade-in';
@@ -1013,7 +1010,6 @@ document.addEventListener('DOMContentLoaded', () => {
               <p class="text-xs text-rose-700 font-medium">正しくは <strong>【 ${item.isCorrect ? '◯ 正しい記述' : '✕ 誤りの記述'} 】</strong> です（あなたは ${state.marubatsu.selectedAnswer ? '◯' : '✕'} を選択）</p>
             </div>
           </div>
-          <span class="px-3 py-1 bg-slate-200 text-slate-700 font-bold text-xs rounded-full">ストリークリセット</span>
         `;
       }
     }
@@ -1047,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.marubatsu.currentIndex < state.marubatsu.list.length - 1) {
       state.marubatsu.currentIndex++;
     } else {
-      shuffleArray(state.marubatsu.list);
+      state.marubatsu.list = shuffleArray(state.marubatsu.list);
       state.marubatsu.currentIndex = 0;
     }
     state.marubatsu.answered = false;
@@ -1076,6 +1072,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const mbBtnTrue = document.getElementById('mb-btn-true');
   const mbBtnFalse = document.getElementById('mb-btn-false');
   const mbBtnNext = document.getElementById('mb-btn-next');
+  const mbBtnShuffle = document.getElementById('mb-btn-shuffle');
+
+  if (mbBtnShuffle) {
+    mbBtnShuffle.addEventListener('click', () => {
+      prepareMarubatsuList();
+      renderMarubatsuView();
+    });
+  }
 
   if (mbBtnTrue) mbBtnTrue.addEventListener('click', () => handleMarubatsuAnswer(true));
   if (mbBtnFalse) mbBtnFalse.addEventListener('click', () => handleMarubatsuAnswer(false));
