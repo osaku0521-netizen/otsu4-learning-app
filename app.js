@@ -762,59 +762,79 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnSubStd) btnSubStd.addEventListener('click', () => switchPracticeSubMode('standard'));
   if (btnSubMb) btnSubMb.addEventListener('click', () => switchPracticeSubMode('marubatsu'));
 
-  // --- 〇✕命題プール自動生成 ---
+  // --- 〇✕命題プール自動生成 (主語・テーマ補完＆ピンポイント解説) ---
+  function cleanTopic(questionText) {
+    let q = questionText.trim();
+    const bracketMatch = q.match(/「([^」]+)」/);
+    const topicEntity = bracketMatch ? bracketMatch[1] : '';
+
+    let topic = q
+      .replace(/について[、,]?/g, '')
+      .replace(/として[、,]?.*(正しい|誤って|適切|異なる|該当|含まれ|どれか).*/g, '')
+      .replace(/次のうち[、,]?.*(正しい|誤って|適切|異なる|該当|含まれ|どれか).*/g, '')
+      .replace(/(正しい|誤って|適切|異なる|該当|含まれ|どれか).*/g, '')
+      .replace(/[、,]\s*$/g, '')
+      .trim();
+
+    if (topic.length > 28) {
+      if (topicEntity) topic = topicEntity;
+      else topic = topic.slice(0, 24) + '…';
+    }
+    if (!topic) topic = '危険物の基本論点';
+    return { topic, topicEntity };
+  }
+
   function buildMarubatsuPool(allQuestions) {
     const items = [];
     allQuestions.forEach(q => {
       const isAskCorrect = q.question.includes('正しいもの') || q.question.includes('適切') || q.question.includes('該当するもの');
       const isAskWrong = q.question.includes('誤っている') || q.question.includes('異なる') || q.question.includes('含まれない') || q.question.includes('該当しない');
 
-      if (!isAskCorrect && !isAskWrong) {
-        const opt = q.options[q.answerIndex];
-        if (opt && opt.length >= 12) {
-          items.push({
-            id: 'mb-' + q.id + '-' + q.answerIndex,
-            sourceQuestionId: q.id,
-            category: q.category,
-            subCategory: q.subCategory,
-            importance: q.importance,
-            statement: opt,
-            isCorrect: true,
-            explanation: '【◯ 正しい記述】\n' + q.explanation.replace(/【正解:\s*[1-5]】\n?/, '')
-          });
-        }
-        return;
-      }
+      if (!isAskCorrect && !isAskWrong) return;
+
+      const { topic, topicEntity } = cleanTopic(q.question);
 
       q.options.forEach((opt, idx) => {
-        if (!opt || opt.length < 10) return;
-        
+        if (!opt || opt.length < 12) return;
+        if (!opt.endsWith('。') && !opt.endsWith('る') && !opt.endsWith('ない') && !opt.endsWith('もの') && !opt.endsWith('こと') && !opt.endsWith('た') && !opt.endsWith('である')) {
+          return;
+        }
+
         let isTrue = false;
         if (isAskCorrect) isTrue = (idx === q.answerIndex);
         else if (isAskWrong) isTrue = (idx !== q.answerIndex);
 
+        let statement = opt;
+        if (topicEntity && !statement.includes(topicEntity) && !statement.startsWith('第') && !statement.startsWith('すべて')) {
+          statement = `【${topicEntity}】${opt}`;
+        }
+
+        const cleanExp = q.explanation.replace(/【正解:\s*[1-5]】\n?/, '').trim();
         let exp = '';
+
         if (isTrue) {
           if (idx === q.answerIndex) {
-            exp = '【◯ 正しい記述】\n' + q.explanation.replace(/【正解:\s*[1-5]】\n?/, '');
+            exp = `【判定: ◯ 正しい記述】\nこの記述は正しい内容です。\n\n▼ 詳しい解説:\n${cleanExp}`;
           } else {
-            exp = '【◯ 正しい記述】\nこの記述は法令・基礎理論に合致した正しい内容です。\n（' + q.subCategory + 'の重要論点）';
+            exp = `【判定: ◯ 正しい記述】\nこの記述は法令・科学的基準に合致した正しい内容です。\n（テーマ: ${topic}）\n\n▼ 関連解説:\n${cleanExp}`;
           }
         } else {
           if (idx === q.answerIndex) {
-            exp = '【✕ 誤りの記述】\n' + q.explanation.replace(/【正解:\s*[1-5]】\n?/, '');
+            exp = `【判定: ✕ 誤りの記述】\nこの記述は誤りです！\n\n▼ 誤りの理由と正しい知識:\n${cleanExp}`;
           } else {
-            exp = '【✕ 誤りの記述】\nこの記述には誤りが含まれています。\n（' + q.subCategory + 'の引っかけ論点）';
+            const correctOptText = q.options[q.answerIndex];
+            exp = `【判定: ✕ 誤りの記述】\nこの記述には誤りが含まれています。\n\n▼ この問題の正しい基準・正解肢:\n「${correctOptText}」\n\n▼ 詳しい解説:\n${cleanExp}`;
           }
         }
 
         items.push({
-          id: 'mb-' + q.id + '-' + idx,
+          id: `mb-${q.id}-${idx}`,
           sourceQuestionId: q.id,
           category: q.category,
           subCategory: q.subCategory,
+          topic: topic,
           importance: q.importance,
-          statement: opt,
+          statement: statement,
           isCorrect: isTrue,
           explanation: exp
         });
@@ -899,10 +919,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const catBadge = document.getElementById('mb-category-badge');
     const subBadge = document.getElementById('mb-subcategory-badge');
     const impBadge = document.getElementById('mb-importance-badge');
+    const topicEl = document.getElementById('mb-topic-text');
     const textEl = document.getElementById('mb-statement-text');
 
     if (catBadge) catBadge.textContent = item.category;
     if (subBadge) subBadge.textContent = item.subCategory;
+    if (topicEl) topicEl.textContent = item.topic || item.subCategory;
     if (impBadge) {
       impBadge.textContent = '★'.repeat(item.importance) + (item.importance === 3 ? ' 超頻出' : item.importance === 2 ? ' 頻出' : ' 重要');
       impBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold border ' + 
@@ -1109,27 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- キーボードショートカット (〇✕特訓対応) ---
-  document.addEventListener('keydown', (e) => {
-    if (state.currentTab === 'practice' && state.practiceSubMode === 'marubatsu') {
-      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-
-      if (!state.marubatsu.answered) {
-        if (e.key === 'ArrowLeft' || e.key === '1') {
-          e.preventDefault();
-          handleMarubatsuAnswer(true);
-        } else if (e.key === 'ArrowRight' || e.key === '2') {
-          e.preventDefault();
-          handleMarubatsuAnswer(false);
-        }
-      } else {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          nextMarubatsuQuestion();
-        }
-      }
-    }
-  });
+  // （キーボード操作は不要のため配置せず、画面ボタンタップに一本化）
 
   // ==========================================
   // 2. 本番模擬試験モード
