@@ -88,7 +88,6 @@ if (duplicateCount === 0) {
 }
 
 // 3. 範囲外（Out-of-Scope）チェック
-// 乙種第4類の範囲外となるキーワード（甲種固有、他法令専門用語など）が含まれていないかチェック
 const outOfScopeKeywords = [
   "放射線取扱主任者",
   "高圧ガス製造保安責任者",
@@ -210,10 +209,8 @@ if (missingSubtopics === 0) {
 }
 
 // 5. 選択肢ランダムシャッフルの整合性シミュレーション
-// 選択肢が入れ替わっても正解が100%正確に追跡できるかを数千回シミュレート
 function shuffleQuestion(q) {
   const originalAnswerText = q.options[q.answerIndex];
-  // シャッフル用配列作成
   const indices = [0, 1, 2, 3, 4];
   for (let i = indices.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
