@@ -762,52 +762,75 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnSubStd) btnSubStd.addEventListener('click', () => switchPracticeSubMode('standard'));
   if (btnSubMb) btnSubMb.addEventListener('click', () => switchPracticeSubMode('marubatsu'));
 
-  // --- 〇✕命題プール自動生成 (主語・テーマ補完＆ピンポイント解説) ---
-  function cleanTopic(questionText) {
-    let q = questionText.trim();
-    const bracketMatch = q.match(/「([^」]+)」/);
-    const topicEntity = bracketMatch ? bracketMatch[1] : '';
-
-    let topic = q
-      .replace(/について[、,]?/g, '')
-      .replace(/として[、,]?.*(正しい|誤って|適切|異なる|該当|含まれ|どれか).*/g, '')
-      .replace(/次のうち[、,]?.*(正しい|誤って|適切|異なる|該当|含まれ|どれか).*/g, '')
-      .replace(/(正しい|誤って|適切|異なる|該当|含まれ|どれか).*/g, '')
-      .replace(/[、,]\s*$/g, '')
-      .trim();
-
-    if (topic.length > 28) {
-      if (topicEntity) topic = topicEntity;
-      else topic = topic.slice(0, 24) + '…';
+  // --- 〇✕論点テーマ生成（公式シラバス準拠・省略「…」完全撤廃） ---
+  function getTopicTheme(q) {
+    const subCat = (q.subCategory || '').trim();
+    const bracketMatch = q.question.match(/「([^」]+)」/);
+    if (bracketMatch) {
+      const entity = bracketMatch[1].trim();
+      if (entity.length >= 2 && entity.length <= 12 && !subCat.includes(entity)) {
+        return `${subCat}（${entity}）`;
+      }
     }
-    if (!topic) topic = '危険物の基本論点';
-    return { topic, topicEntity };
+
+    const majorTerms = [
+      '第1石油類', '第2石油類', '第3石油類', '第4石油類', '特殊引火物', 'アルコール類', '動植物油類',
+      'ガソリン', '灯油', '軽油', '重油', 'アセトン', 'ベンゼン', 'トルエン', 'ジエチルエーテル',
+      'ボイルの法則', 'シャルルの法則', 'ボイル・シャルルの法則', 'ヘスの法則',
+      '静電気', '保安距離', '保有空地', '防油堤', '指定数量の倍数', '製造所等',
+      '給油取扱所', '移動タンク貯蔵所', '屋外タンク貯蔵所', '屋内タンク貯蔵所', '地下タンク貯蔵所',
+      '危険物取扱者', '危険物保安監督者', '定期点検', '予防規程', '消火設備', '警報設備'
+    ];
+
+    for (const term of majorTerms) {
+      if (q.question.includes(term) && !subCat.includes(term)) {
+        return `${subCat}（${term}）`;
+      }
+    }
+
+    return subCat || '乙4重要論点';
+  }
+
+  // --- 設問の出題前提・状況の自然言語抽出 ---
+  function cleanPremise(rawQ) {
+    let p = rawQ.trim();
+    p = p.replace(/[、,]?\s*(?:次のうち|下記のうち|このうち)?\s*(?:[、,])?\s*(?:法令上[、,]?)?\s*(?:最も)?(?:正しいもの|誤っているもの|誤りのもの|誤りは|正しい記述|誤った記述|正しい基準|誤った基準|適切なもの|不適切なもの|異なるもの|該当するもの|該当しないもの|含まれるもの|含まれないもの|定められていないもの|適応しないもの|定めのないもの|あてはまるもの|あてはまらないもの|合致するもの|正解)?(?:は|として|のうち)?(?:どれか|いくらか|何倍か|何ｍか|何mか|何％か|何%か|何か|あるか|ないか|存在しないもの|正しくないもの).*/g, '');
+    p = p.replace(/[、,]?\s*(?:に関する)?(?:次の)?(?:記述)?(?:のうち)?$/g, '');
+    p = p.replace(/[、,]\s*$/, '').trim();
+    
+    // 末尾の不要な助詞を除去
+    p = p.replace(/(?:は|が|に|を|へ|と|より|から|の|で)$/, '');
+    p = p.trim();
+
+    if (!p || p.length < 3) {
+      p = rawQ.replace(/([？?]|はどれか|か。|どれか。)$/, '').trim();
+    }
+
+    if (p.endsWith('について') || p.endsWith('として') || p.endsWith('場合') || p.endsWith('おいて') || p.endsWith('とき') || p.endsWith('際')) {
+      return p;
+    }
+    return p + 'について';
   }
 
   function buildMarubatsuPool(allQuestions) {
     const items = [];
     allQuestions.forEach(q => {
-      const isAskCorrect = q.question.includes('正しいもの') || q.question.includes('適切') || q.question.includes('該当するもの');
-      const isAskWrong = q.question.includes('誤っている') || q.question.includes('異なる') || q.question.includes('含まれない') || q.question.includes('該当しない');
+      const isAskCorrect = q.question.includes('正しいもの') || q.question.includes('適切') || q.question.includes('該当するもの') || q.question.includes('正しい記述') || q.question.includes('合致するもの');
+      const isAskWrong = q.question.includes('誤っている') || q.question.includes('異なる') || q.question.includes('含まれない') || q.question.includes('該当しない') || q.question.includes('適応しない') || q.question.includes('定められていない') || q.question.includes('誤り');
 
       if (!isAskCorrect && !isAskWrong) return;
 
-      const { topic, topicEntity } = cleanTopic(q.question);
+      const topic = getTopicTheme(q);
+      const premise = cleanPremise(q.question);
 
       q.options.forEach((opt, idx) => {
-        if (!opt || opt.length < 12) return;
-        if (!opt.endsWith('。') && !opt.endsWith('る') && !opt.endsWith('ない') && !opt.endsWith('もの') && !opt.endsWith('こと') && !opt.endsWith('た') && !opt.endsWith('である')) {
-          return;
-        }
+        if (!opt || opt.length < 10) return;
+        // 単なる数値のみの選択肢（計算問題など命題として成立しないもの）は除外
+        if (/^[0-9０-９.,\s倍％%kmML]+$/.test(opt.trim())) return;
 
         let isTrue = false;
         if (isAskCorrect) isTrue = (idx === q.answerIndex);
         else if (isAskWrong) isTrue = (idx !== q.answerIndex);
-
-        let statement = opt;
-        if (topicEntity && !statement.includes(topicEntity) && !statement.startsWith('第') && !statement.startsWith('すべて')) {
-          statement = `【${topicEntity}】${opt}`;
-        }
 
         const cleanExp = q.explanation.replace(/【正解:\s*[1-5]】\n?/, '').trim();
         let exp = '';
@@ -816,7 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (idx === q.answerIndex) {
             exp = `【判定: ◯ 正しい記述】\nこの記述は正しい内容です。\n\n▼ 詳しい解説:\n${cleanExp}`;
           } else {
-            exp = `【判定: ◯ 正しい記述】\nこの記述は法令・科学的基準に合致した正しい内容です。\n（テーマ: ${topic}）\n\n▼ 関連解説:\n${cleanExp}`;
+            exp = `【判定: ◯ 正しい記述】\nこの記述は法令・科学的基準に合致した正しい内容です。\n（論点: ${topic}）\n\n▼ 関連解説:\n${cleanExp}`;
           }
         } else {
           if (idx === q.answerIndex) {
@@ -833,8 +856,9 @@ document.addEventListener('DOMContentLoaded', () => {
           category: q.category,
           subCategory: q.subCategory,
           topic: topic,
+          premise: premise,
           importance: q.importance,
-          statement: statement,
+          statement: opt,
           isCorrect: isTrue,
           explanation: exp
         });
@@ -918,11 +942,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const subBadge = document.getElementById('mb-subcategory-badge');
     const impBadge = document.getElementById('mb-importance-badge');
     const topicEl = document.getElementById('mb-topic-text');
+    const premiseEl = document.getElementById('mb-premise-text');
     const textEl = document.getElementById('mb-statement-text');
 
     if (catBadge) catBadge.textContent = item.category;
     if (subBadge) subBadge.textContent = item.subCategory;
     if (topicEl) topicEl.textContent = item.topic || item.subCategory;
+    if (premiseEl) premiseEl.textContent = item.premise || item.topic;
     if (impBadge) {
       impBadge.textContent = '★'.repeat(item.importance) + (item.importance === 3 ? ' 超頻出' : item.importance === 2 ? ' 頻出' : ' 重要');
       impBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold border ' + 
