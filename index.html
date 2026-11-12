@@ -281,6 +281,21 @@
       <!-- ================= 〇✕演習ビュー ================= -->
       <div id="practice-marubatsu-view" class="hidden space-y-5 sm:space-y-6">
         
+        <!-- 〇✕分野特訓中の案内バナー (分野指定時のみ表示) -->
+        <div id="mb-subcat-banner" class="hidden p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-fade-in">
+          <div class="flex items-center space-x-3">
+            <span class="px-2.5 py-1 bg-amber-500 text-white font-extrabold text-xs rounded-lg shadow-sm">分野特訓中</span>
+            <div>
+              <span class="text-xs text-amber-800 font-medium block">現在特訓中の論点</span>
+              <span id="mb-subcat-title" class="text-sm font-extrabold text-slate-900">指定数量とその計算</span>
+            </div>
+          </div>
+          <button type="button" id="btn-exit-mb-subcat-practice" class="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-xs self-end sm:self-auto flex items-center space-x-1 cursor-pointer">
+            <span>全問演習に戻る</span>
+            <span>✕</span>
+          </button>
+        </div>
+
         <!-- 〇✕フィルターバー -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -744,6 +759,93 @@
             <span>〇✕演習を解く</span>
             <span>➔</span>
           </button>
+        </div>
+      </div>
+
+      <!-- ================= 🚨 最優先で克服すべき苦手論点（ワースト3） ================= -->
+      <div id="stats-worst-topics-card" class="bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 p-5 sm:p-7 rounded-2xl border-2 border-rose-200/90 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-rose-100 pb-3">
+          <div class="flex items-center space-x-2.5">
+            <span class="w-9 h-9 rounded-xl bg-rose-500 text-white flex items-center justify-center font-black text-lg shadow-xs shrink-0">🚨</span>
+            <div>
+              <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2 flex-wrap">
+                <span>最優先で克服すべき苦手論点</span>
+                <span class="text-xs font-bold px-2 py-0.5 bg-rose-100 text-rose-800 rounded-full">要対策ワースト3</span>
+              </h3>
+              <p class="text-xs text-slate-500">直近の解答実績（5肢択一＋〇✕演習）に基づき、正答率が低く足切りの危険がある分野を自動分析しています</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="stats-worst-topics-list" class="space-y-3">
+          <!-- JSで動的レンダリング -->
+        </div>
+      </div>
+
+      <!-- ================= 🗺️ シラバス全26分野の習熟度ヒートマップ ================= -->
+      <div id="stats-heatmap-card" class="bg-white p-5 sm:p-7 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+              <span>🗺️ シラバス全26分野の習熟度ヒートマップ</span>
+            </h3>
+            <p class="text-xs text-slate-500">消防シラバス全26項目ごとの定着度・解答実績を可視化します</p>
+          </div>
+
+          <!-- 集計対象モード切り替え (総合 vs 5肢 vs 〇✕) -->
+          <div class="inline-flex p-1 bg-slate-100 rounded-xl text-xs font-bold text-slate-600 self-start sm:self-auto shadow-inner">
+            <button type="button" class="stats-mode-filter-btn px-3 py-1.5 rounded-lg transition-all shadow-xs bg-white text-sky-600 font-extrabold cursor-pointer" data-mode="all">
+              🌟 総合
+            </button>
+            <button type="button" class="stats-mode-filter-btn px-3 py-1.5 rounded-lg transition-all hover:text-slate-900 cursor-pointer" data-mode="standard">
+              📝 5肢択一
+            </button>
+            <button type="button" class="stats-mode-filter-btn px-3 py-1.5 rounded-lg transition-all hover:text-slate-900 cursor-pointer" data-mode="marubatsu">
+              ⚡ 〇✕演習
+            </button>
+          </div>
+        </div>
+
+        <!-- 科目別フィルタータブ (すべて / 法令 / 物理化学 / 性質消火) -->
+        <div class="flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto pb-1 text-xs font-bold">
+          <button type="button" class="stats-cat-filter-btn px-3.5 py-1.5 rounded-xl bg-sky-600 text-white shadow-xs cursor-pointer" data-cat="all">
+            すべて (26)
+          </button>
+          <button type="button" class="stats-cat-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer" data-cat="法令">
+            法令 (10)
+          </button>
+          <button type="button" class="stats-cat-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer" data-cat="物理化学">
+            物理化学 (9)
+          </button>
+          <button type="button" class="stats-cat-filter-btn px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer" data-cat="性質消火">
+            性質消火 (7)
+          </button>
+        </div>
+
+        <!-- 凡例 -->
+        <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+          <span class="font-bold text-slate-700">凡例:</span>
+          <span class="inline-flex items-center space-x-1 font-bold text-emerald-700">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span>定着・得意 (正答率80%以上)</span>
+          </span>
+          <span class="inline-flex items-center space-x-1 font-bold text-amber-700">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <span>要復習・標準 (60〜79%)</span>
+          </span>
+          <span class="inline-flex items-center space-x-1 font-bold text-rose-700">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+            <span>危険・要対策 (60%未満)</span>
+          </span>
+          <span class="inline-flex items-center space-x-1 font-medium text-slate-500">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+            <span>未着手 (0問)</span>
+          </span>
+        </div>
+
+        <!-- 26分野グリッドコンテナ -->
+        <div id="stats-topics-heatmap-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <!-- JSで動的レンダリング -->
         </div>
       </div>
 

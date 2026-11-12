@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
       importance: 'all',
       onlyUnattempted: false,
       onlyWrong: false,
+      subCategoryFilter: null,
       pool: [],
       list: [],
       currentIndex: 0,
@@ -58,6 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
     glossary: {
       searchQuery: '',
       category: 'all'
+    },
+
+    // 学習進捗ヒートマップ状態
+    statsHeatmap: {
+      mode: 'all', // 'all' | 'standard' | 'marubatsu'
+      category: 'all' // 'all' | '法令' | '物理化学' | '性質消火'
     },
 
     // ユーザー履歴 (LocalStorage)
@@ -229,6 +236,59 @@ document.addEventListener('DOMContentLoaded', () => {
     preparePracticeQuestions();
     window.switchTab('practice');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ③ サブカテゴリ（シラバス26分野）ごとの特訓演習を開始
+  window.startSubCategoryPractice = function(subCategoryName, targetMode = 'standard') {
+    if (targetMode === 'standard') {
+      state.practiceSubMode = 'standard';
+      state.practice.category = 'all';
+      state.practice.importance = 'all';
+      state.practice.chapterFilter = {
+        id: subCategoryName,
+        title: `分野特訓: ${subCategoryName}`,
+        subCategories: [subCategoryName]
+      };
+      const hasWrong = state.allQuestions.some(q => 
+        q.subCategory === subCategoryName && 
+        state.userData.history[q.id]?.attempts > (state.userData.history[q.id]?.correct || 0)
+      );
+      state.practice.onlyWrong = hasWrong;
+      state.practice.onlyUnattempted = false;
+      state.practice.onlyBookmarked = false;
+
+      preparePracticeQuestions();
+      window.switchTab('practice');
+      renderPracticeView();
+    } else {
+      state.practiceSubMode = 'marubatsu';
+      state.marubatsu.category = 'all';
+      state.marubatsu.importance = 'all';
+      state.marubatsu.subCategoryFilter = subCategoryName;
+      if (state.marubatsu.pool.length === 0) {
+        state.marubatsu.pool = buildMarubatsuPool(state.allQuestions);
+      }
+      const mbHist = state.userData.marubatsuHistory || {};
+      const hasMbWrong = state.marubatsu.pool.some(m => 
+        m.subCategory === subCategoryName && 
+        mbHist[m.id]?.attempts > (mbHist[m.id]?.correct || 0)
+      );
+      state.marubatsu.onlyWrong = hasMbWrong;
+      state.marubatsu.onlyUnattempted = false;
+
+      prepareMarubatsuList();
+      window.switchTab('practice');
+      renderMarubatsuView();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ④ サブカテゴリから要点テキスト該当章へジャンプ
+  window.jumpToSubCategoryTextbook = function(subCategoryName) {
+    const chInfo = SUBCATEGORY_TO_CHAPTER[subCategoryName];
+    if (chInfo) {
+      window.jumpToTextbookChapter(chInfo.chapterId);
+    }
   };
 
   // --- タブ切り替え ---
@@ -901,6 +961,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // 分野（サブカテゴリ）フィルタ
+    if (state.marubatsu.subCategoryFilter) {
+      filtered = filtered.filter(item => item.subCategory === state.marubatsu.subCategoryFilter);
+    }
+
     // シャッフル（ランダム出題順）
     state.marubatsu.list = shuffleArray(filtered);
     state.marubatsu.currentIndex = 0;
@@ -937,6 +1002,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentNumEl) currentNumEl.textContent = currIdx + 1;
 
     updateMarubatsuStatsUI();
+
+    const mbSubcatBanner = document.getElementById('mb-subcat-banner');
+    const mbSubcatTitle = document.getElementById('mb-subcat-title');
+    if (mbSubcatBanner) {
+      if (state.marubatsu.subCategoryFilter) {
+        mbSubcatBanner.classList.remove('hidden');
+        if (mbSubcatTitle) mbSubcatTitle.textContent = state.marubatsu.subCategoryFilter;
+      } else {
+        mbSubcatBanner.classList.add('hidden');
+      }
+    }
 
     const catBadge = document.getElementById('mb-category-badge');
     const subBadge = document.getElementById('mb-subcategory-badge');
@@ -1112,6 +1188,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (mbBtnNext) mbBtnNext.addEventListener('click', () => nextMarubatsuQuestion());
 
   // 〇✕フィルター変更イベント
+  const btnExitMbSubcat = document.getElementById('btn-exit-mb-subcat-practice');
+  if (btnExitMbSubcat) {
+    btnExitMbSubcat.addEventListener('click', () => {
+      state.marubatsu.subCategoryFilter = null;
+      prepareMarubatsuList();
+      renderMarubatsuView();
+    });
+  }
+
   const mbFilterCat = document.getElementById('mb-filter-category');
   const mbFilterImp = document.getElementById('mb-filter-importance');
   const mbFilterUnattempted = document.getElementById('mb-filter-only-unattempted');
@@ -1121,6 +1206,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (mbFilterCat) {
     mbFilterCat.addEventListener('change', (e) => {
       state.marubatsu.category = e.target.value;
+      state.marubatsu.subCategoryFilter = null;
       prepareMarubatsuList();
       renderMarubatsuView();
     });
@@ -1897,6 +1983,305 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // 5. 学習進捗・統計モード
   // ==========================================
+
+  // ==========================================
+  // シラバス全26分野 定義 & 習熟度計算
+  // ==========================================
+  const SYLLABUS_SUBCATEGORIES = [
+    // 法令 (10)
+    { name: '危険物の定義・品名', category: '法令' },
+    { name: '指定数量とその計算', category: '法令' },
+    { name: '製造所等の区分', category: '法令' },
+    { name: '許認可・手続き', category: '法令' },
+    { name: '保安距離・保有空地', category: '法令' },
+    { name: '構造・設備基準', category: '法令' },
+    { name: '標識・掲示板', category: '法令' },
+    { name: '消火・警報設備', category: '法令' },
+    { name: '取扱者・免状・保安体制', category: '法令' },
+    { name: '貯蔵・取扱・運搬・移送', category: '法令' },
+    // 物理化学 (9)
+    { name: '燃焼の基礎理論', category: '物理化学' },
+    { name: '燃焼の形態', category: '物理化学' },
+    { name: '引火点・発火点・燃焼範囲', category: '物理化学' },
+    { name: '自然発火の機構', category: '物理化学' },
+    { name: '消火理論と消火剤', category: '物理化学' },
+    { name: '状態変化と熱力学', category: '物理化学' },
+    { name: '化学の基礎', category: '物理化学' },
+    { name: '熱化学・ヘスの法則', category: '物理化学' },
+    { name: '静電気の性質と災害防止', category: '物理化学' },
+    // 性質消火 (7)
+    { name: '危険物の類別概括', category: '性質消火' },
+    { name: '第4類の共通性状', category: '性質消火' },
+    { name: '特殊引火物', category: '性質消火' },
+    { name: '第1石油類', category: '性質消火' },
+    { name: 'アルコール類', category: '性質消火' },
+    { name: '第2石油類', category: '性質消火' },
+    { name: '第3石油類〜動植物油類', category: '性質消火' }
+  ];
+
+  function getTopicFullStats(subCategoryName) {
+    // 1. Standard (5肢択一)
+    const stdQuestions = state.allQuestions.filter(q => q.subCategory === subCategoryName);
+    let stdAns = 0;
+    let stdCor = 0;
+    stdQuestions.forEach(q => {
+      const h = state.userData.history[q.id];
+      if (h && h.attempts > 0) {
+        stdAns++;
+        if (h.correct > 0) stdCor++;
+      }
+    });
+    const stdTotal = stdQuestions.length;
+    const stdAcc = stdAns > 0 ? Math.round((stdCor / stdAns) * 100) : 0;
+
+    // 2. Marubatsu (〇✕演習)
+    if (state.marubatsu.pool.length === 0) {
+      state.marubatsu.pool = buildMarubatsuPool(state.allQuestions);
+    }
+    const mbItems = state.marubatsu.pool.filter(m => m.subCategory === subCategoryName);
+    let mbAns = 0;
+    let mbCor = 0;
+    const mbHist = state.userData.marubatsuHistory || {};
+    mbItems.forEach(m => {
+      const h = mbHist[m.id];
+      if (h && h.attempts > 0) {
+        mbAns++;
+        if (h.correct > 0) mbCor++;
+      }
+    });
+    const mbTotal = mbItems.length;
+    const mbAcc = mbAns > 0 ? Math.round((mbCor / mbAns) * 100) : 0;
+
+    // 3. Combined (総合)
+    const totalQuestions = stdTotal + mbTotal;
+    const totalAns = stdAns + mbAns;
+    const totalCor = stdCor + mbCor;
+    const totalAcc = totalAns > 0 ? Math.round((totalCor / totalAns) * 100) : 0;
+
+    return {
+      subCategory: subCategoryName,
+      standard: { total: stdTotal, answered: stdAns, correct: stdCor, accuracy: stdAcc },
+      marubatsu: { total: mbTotal, answered: mbAns, correct: mbCor, accuracy: mbAcc },
+      all: { total: totalQuestions, answered: totalAns, correct: totalCor, accuracy: totalAcc }
+    };
+  }
+
+  function renderWorstTopicsCard() {
+    const listEl = document.getElementById('stats-worst-topics-list');
+    if (!listEl) return;
+
+    const allTopicStats = SYLLABUS_SUBCATEGORIES.map(sub => {
+      const stats = getTopicFullStats(sub.name);
+      return {
+        name: sub.name,
+        category: sub.category,
+        stats
+      };
+    });
+
+    const attempted = allTopicStats.filter(t => t.stats.all.answered > 0);
+
+    if (attempted.length === 0) {
+      listEl.innerHTML = `
+        <div class="p-6 bg-white/90 rounded-xl border border-rose-200/60 text-center space-y-2">
+          <span class="text-3xl block">💡</span>
+          <h4 class="text-sm font-bold text-slate-800">まだ演習の解答データがありません</h4>
+          <p class="text-xs text-slate-500 max-w-md mx-auto">
+            5肢択一や〇✕演習を解き進めると、あなたの解答実績から苦手な論点がここに自動抽出されます。まずは気になる分野から演習を始めましょう！
+          </p>
+          <div class="pt-2 flex flex-wrap justify-center gap-2">
+            <button type="button" onclick="window.switchTab('practice')" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer">
+              5肢択一演習を始める ➔
+            </button>
+            <button type="button" onclick="window.switchToMarubatsuMode()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer">
+              〇✕演習を始める ➔
+            </button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const needsWork = attempted.filter(t => t.stats.all.accuracy < 80);
+
+    if (needsWork.length === 0) {
+      listEl.innerHTML = `
+        <div class="p-6 bg-emerald-50/90 rounded-xl border border-emerald-200 text-center space-y-2">
+          <span class="text-3xl block">🎉</span>
+          <h4 class="text-sm font-bold text-emerald-900">素晴らしい仕上がりです！</h4>
+          <p class="text-xs text-emerald-700 max-w-md mx-auto">
+            現在、解答済みのすべての分野で正答率80%以上を達成しています。弱点はありません。この調子で本番模試に挑戦しましょう！
+          </p>
+          <div class="pt-2">
+            <button type="button" onclick="window.switchTab('mock')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer">
+              本番模擬試験を受ける ➔
+            </button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    needsWork.sort((a, b) => {
+      if (a.stats.all.accuracy !== b.stats.all.accuracy) {
+        return a.stats.all.accuracy - b.stats.all.accuracy;
+      }
+      const missA = a.stats.all.answered - a.stats.all.correct;
+      const missB = b.stats.all.answered - b.stats.all.correct;
+      return missB - missA;
+    });
+
+    const top3 = needsWork.slice(0, 3);
+    const medals = [
+      { rank: '1位', badge: 'bg-rose-500 text-white', border: 'border-rose-300' },
+      { rank: '2位', badge: 'bg-amber-500 text-white', border: 'border-amber-300' },
+      { rank: '3位', badge: 'bg-orange-400 text-white', border: 'border-orange-300' }
+    ];
+
+    listEl.innerHTML = top3.map((item, idx) => {
+      const m = medals[idx] || medals[2];
+      const acc = item.stats.all.accuracy;
+      const isCritical = acc < 60;
+      const statusBadge = isCritical
+        ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 border border-rose-300">🔴 危険・要対策</span>`
+        : `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">🟡 要復習</span>`;
+
+      return `
+        <div class="p-4 sm:p-4.5 bg-white rounded-xl border ${m.border} shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-all hover:shadow-xs">
+          <div class="space-y-1.5 flex-1 min-w-0">
+            <div class="flex items-center space-x-2 flex-wrap gap-y-1">
+              <span class="px-2 py-0.5 rounded-md text-xs font-black ${m.badge} shadow-2xs">${m.rank}</span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-100 text-slate-700">${item.category}</span>
+              <span class="text-sm sm:text-base font-extrabold text-slate-900">${item.name}</span>
+              ${statusBadge}
+            </div>
+            <div class="flex items-center space-x-3 text-xs text-slate-600 font-medium flex-wrap">
+              <span>総合正答率: <strong class="${isCritical ? 'text-rose-600' : 'text-amber-600'} font-black text-sm">${acc}%</strong> (${item.stats.all.correct}/${item.stats.all.answered}問)</span>
+              <span class="text-slate-300">|</span>
+              <span class="text-[11px] text-slate-500">5肢: ${item.stats.standard.correct}/${item.stats.standard.answered}問 ｜ 〇✕: ${item.stats.marubatsu.correct}/${item.stats.marubatsu.answered}問</span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2 shrink-0 self-end md:self-auto">
+            <button type="button" onclick="window.startSubCategoryPractice('${item.name}', 'standard')" class="px-3 py-1.5 bg-white hover:bg-sky-50 text-sky-700 border border-sky-300 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center space-x-1 cursor-pointer">
+              <span>📝 5肢で特訓</span>
+              <span>➔</span>
+            </button>
+            <button type="button" onclick="window.startSubCategoryPractice('${item.name}', 'marubatsu')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center space-x-1 cursor-pointer">
+              <span>⚡ 〇✕で特訓</span>
+              <span>➔</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderTopicsHeatmapGrid() {
+    const gridEl = document.getElementById('stats-topics-heatmap-grid');
+    if (!gridEl) return;
+
+    const currentMode = state.statsHeatmap.mode;
+    const currentCat = state.statsHeatmap.category;
+
+    let list = SYLLABUS_SUBCATEGORIES;
+    if (currentCat !== 'all') {
+      list = list.filter(s => s.category === currentCat);
+    }
+
+    gridEl.innerHTML = list.map(sub => {
+      const stats = getTopicFullStats(sub.name);
+      const s = stats[currentMode];
+
+      let status = 'unattempted';
+      let statusBadge = '';
+      let borderClass = 'border-slate-200/90';
+      let bgClass = 'bg-white';
+      let progressColor = 'bg-slate-300';
+      let accTextColor = 'text-slate-400';
+
+      if (s.answered > 0) {
+        const minThreshold = (currentMode === 'all' ? 4 : 2);
+        if (s.accuracy >= 80 && s.answered >= minThreshold) {
+          status = 'mastered';
+          statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">🟢 定着・得意</span>`;
+          borderClass = 'border-emerald-200 hover:border-emerald-300';
+          bgClass = 'bg-emerald-50/20 hover:bg-emerald-50/40';
+          progressColor = 'bg-emerald-500';
+          accTextColor = 'text-emerald-700';
+        } else if (s.accuracy >= 60) {
+          status = 'standard';
+          statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">🟡 要復習</span>`;
+          borderClass = 'border-amber-200 hover:border-amber-300';
+          bgClass = 'bg-amber-50/20 hover:bg-amber-50/40';
+          progressColor = 'bg-amber-500';
+          accTextColor = 'text-amber-700';
+        } else {
+          status = 'weak';
+          statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">🔴 危険・要対策</span>`;
+          borderClass = 'border-rose-200 hover:border-rose-300';
+          bgClass = 'bg-rose-50/30 hover:bg-rose-50/50';
+          progressColor = 'bg-rose-500';
+          accTextColor = 'text-rose-700';
+        }
+      } else {
+        statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">⚪ 未着手</span>`;
+      }
+
+      const progressPct = s.total > 0 ? Math.min(100, Math.round((s.correct / s.total) * 100)) : 0;
+      const chInfo = SUBCATEGORY_TO_CHAPTER[sub.name];
+
+      const breakdownHtml = (currentMode === 'all')
+        ? `<div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+             <span>5肢: ${stats.standard.correct}/${stats.standard.answered}問</span>
+             <span>〇✕: ${stats.marubatsu.correct}/${stats.marubatsu.answered}問</span>
+           </div>`
+        : `<div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+             <span>総問題数: ${s.total}問</span>
+             <span>消化数: ${s.answered}問</span>
+           </div>`;
+
+      return `
+        <div class="p-4 rounded-2xl border ${borderClass} ${bgClass} shadow-2xs space-y-3 flex flex-col justify-between transition-all">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between gap-1">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-100 text-slate-600">${sub.category}</span>
+              ${statusBadge}
+            </div>
+            <h4 class="text-sm font-black text-slate-900 leading-snug">${sub.name}</h4>
+            
+            <div class="space-y-1">
+              <div class="flex items-baseline justify-between text-xs">
+                <span class="font-bold text-slate-600">正答率: <span class="text-base font-black font-mono ${accTextColor}">${s.answered > 0 ? s.accuracy + '%' : '--'}</span></span>
+                <span class="text-[11px] text-slate-500 font-mono">${s.correct}/${s.total}問 (${progressPct}%)</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60">
+                <div class="${progressColor} h-full rounded-full transition-all" style="width: ${progressPct}%"></div>
+              </div>
+            </div>
+
+            ${breakdownHtml}
+          </div>
+
+          <!-- クイックアクション -->
+          <div class="pt-1 flex items-center space-x-1.5">
+            <button type="button" onclick="window.startSubCategoryPractice('${sub.name}', 'standard')" class="flex-1 py-1.5 px-2 bg-white hover:bg-sky-50 text-sky-700 border border-sky-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center space-x-1 cursor-pointer">
+              <span>5肢</span>
+              <span>➔</span>
+            </button>
+            <button type="button" onclick="window.startSubCategoryPractice('${sub.name}', 'marubatsu')" class="flex-1 py-1.5 px-2 bg-white hover:bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center space-x-1 cursor-pointer">
+              <span>〇✕</span>
+              <span>➔</span>
+            </button>
+            ${chInfo ? `
+            <button type="button" onclick="window.jumpToSubCategoryTextbook('${sub.name}')" class="py-1.5 px-2.5 bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center cursor-pointer" title="要点テキストを開く">
+              <span>📖</span>
+            </button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
   function renderStatsView() {
     const totalQ = state.allQuestions.length;
     let answeredQ = 0;
@@ -1951,6 +2336,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mbAccEl) mbAccEl.textContent = `${mbPct}%`;
     if (mbMaxEl) mbMaxEl.textContent = state.userData.marubatsuMaxStreak || 0;
 
+    // 🚨 苦手ワースト3 ＆ 🗺️ 26分野ヒートマップ描画
+    renderWorstTopicsCard();
+    renderTopicsHeatmapGrid();
+
     // カテゴリ別カード
     ['法令', '物理化学', '性質消火'].forEach(cat => {
       const s = catStats[cat];
@@ -1991,6 +2380,37 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+
+  // ヒートマップのモード切り替え (総合 vs 5肢 vs 〇✕)
+  document.querySelectorAll('.stats-mode-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.statsHeatmap.mode = btn.dataset.mode;
+      document.querySelectorAll('.stats-mode-filter-btn').forEach(b => {
+        const isActive = (b.dataset.mode === state.statsHeatmap.mode);
+        b.classList.toggle('bg-white', isActive);
+        b.classList.toggle('text-sky-600', isActive);
+        b.classList.toggle('font-extrabold', isActive);
+        b.classList.toggle('shadow-xs', isActive);
+      });
+      renderTopicsHeatmapGrid();
+    });
+  });
+
+  // ヒートマップの科目フィルター (すべて / 法令 / 物理化学 / 性質消火)
+  document.querySelectorAll('.stats-cat-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.statsHeatmap.category = btn.dataset.cat;
+      document.querySelectorAll('.stats-cat-filter-btn').forEach(b => {
+        const isActive = (b.dataset.cat === state.statsHeatmap.category);
+        b.classList.toggle('bg-sky-600', isActive);
+        b.classList.toggle('text-white', isActive);
+        b.classList.toggle('shadow-xs', isActive);
+        b.classList.toggle('bg-slate-100', !isActive);
+        b.classList.toggle('text-slate-600', !isActive);
+      });
+      renderTopicsHeatmapGrid();
+    });
+  });
 
   // データ初期化
   document.getElementById('btn-clear-stats').addEventListener('click', () => {
