@@ -333,4 +333,5 @@ ${Object.entries(report.subCategoryCounts).map(([sub, count]) => `- **${sub}**: 
 `;
 
 fs.writeFileSync(path.join(__dirname, '../VERIFICATION_REPORT.md'), mdReport, 'utf8');
-console.log('\nSaved VERIFICATION_REPORT.md successfully!\n');
+fs.writeFileSync(path.join(__dirname, '../docs/VALIDATION_REPORT.md'), mdReport, 'utf8');
+console.log('\nSaved VERIFICATION_REPORT.md and docs/VALIDATION_REPORT.md successfully!\n');
