@@ -2200,8 +2200,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let accTextColor = 'text-slate-400';
 
       if (s.answered > 0) {
-        const minThreshold = (currentMode === 'all' ? 4 : 2);
-        if (s.accuracy >= 80 && s.answered >= minThreshold) {
+        if (s.accuracy >= 80) {
           status = 'mastered';
           statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">🟢 定着・得意</span>`;
           borderClass = 'border-emerald-200 hover:border-emerald-300';
@@ -2249,13 +2248,22 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <h4 class="text-sm font-black text-slate-900 leading-snug">${sub.name}</h4>
             
-            <div class="space-y-1">
-              <div class="flex items-baseline justify-between text-xs">
-                <span class="font-bold text-slate-600">正答率: <span class="text-base font-black font-mono ${accTextColor}">${s.answered > 0 ? s.accuracy + '%' : '--'}</span></span>
-                <span class="text-[11px] text-slate-500 font-mono">${s.correct}/${s.total}問 (${progressPct}%)</span>
+            <div class="space-y-1.5">
+              <!-- 正答率ゲージ（正答率のパーセントとバーを100%一致） -->
+              <div>
+                <div class="flex items-baseline justify-between text-xs mb-1">
+                  <span class="font-bold text-slate-700">正答率</span>
+                  <span class="text-base font-black font-mono ${accTextColor}">${s.answered > 0 ? s.accuracy + '%' : '--'}</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60">
+                  <div class="${progressColor} h-full rounded-full transition-all" style="width: ${s.answered > 0 ? s.accuracy : 0}%"></div>
+                </div>
               </div>
-              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/60">
-                <div class="${progressColor} h-full rounded-full transition-all" style="width: ${progressPct}%"></div>
+
+              <!-- 消化進捗表示（正答率とは別枠で明確化） -->
+              <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                <span>消化進捗: <strong class="text-slate-700 font-bold">${s.correct}/${s.total}問 正解</strong> (${progressPct}%)</span>
+                <span class="text-[10px] text-slate-400">解答: ${s.answered}問</span>
               </div>
             </div>
 
